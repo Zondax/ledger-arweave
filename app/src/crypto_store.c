@@ -64,7 +64,7 @@ zxerr_t crypto_derivePrime(uint8_t *prime, uint8_t index) {
     // Now derive p_seed and q_seed from the master seed
     cx_sha3_t hash_sha3;
     uint8_t data_index[2] = {0, index};
-    cx_sha3_xof_init(&hash_sha3, 256, RSA_PRIME_LEN);
+    cx_shake256_init(&hash_sha3, RSA_PRIME_LEN * 8);
     cx_hash(&hash_sha3.header, 0, (void *) data_index, 2, NULL, 0);
     cx_hash(&hash_sha3.header, CX_LAST, (void *) &N_crypto_store.masterSeed, 32, prime, RSA_PRIME_LEN);
 
