@@ -26,7 +26,7 @@ extern "C" {
 #include <sigutils.h>
 #include <zxerror.h>
 
-#define RSA_MODULUS_LEN 128     // 4096 key
+#define RSA_MODULUS_LEN 512     // 4096 key
 #define RSA_PRIME_LEN   256     // 4096 key
 
 void crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *out, unsigned int outLen);
