@@ -131,12 +131,13 @@ export default class ArweaveApp {
 
   static prepareChunks(message) {
     const chunks = [];
-    chunks.push(Buffer.from([]))
+    chunks.push(Buffer.alloc(20));
 
     console.log("prepareChunks")
 
-    const messageBuffer = ArweaveApp.encodeTx(message);
+    const messageBuffer = Buffer.from(ArweaveApp.encodeTx(message));
 
+    console.log("tx encoded");
     const buffer = Buffer.concat([messageBuffer]);
     for (let i = 0; i < buffer.length; i += CHUNK_SIZE) {
       let end = i + CHUNK_SIZE;
@@ -145,7 +146,7 @@ export default class ArweaveApp {
       }
       chunks.push(buffer.slice(i, end));
     }
-
+    console.log("chunks ready");
     return chunks;
   }
 
@@ -213,7 +214,7 @@ export default class ArweaveApp {
   }
 
   async getAddress() {
-    let emptyPath = Buffer.from([])
+    let memptyPath = Buffer.from([])
     return this.transport
       .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
@@ -245,16 +246,13 @@ export default class ArweaveApp {
           errorMessage = `${errorMessage} : ${response.slice(0, response.length - 2).toString("ascii")}`;
         }
 
-        let signatureCompact = null;
-        let signatureDER = null;
+        let signature = null;
         if (response.length > 2) {
-          signatureCompact = response.slice(0, 65);
-          signatureDER = response.slice(65, response.length - 2);
+          signature = response.slice(0, 64);
         }
-
+        console.log(signature);
         return {
-          signatureCompact,
-          signatureDER,
+          signature: signature,
           returnCode: returnCode,
           errorMessage: errorMessage,
         };

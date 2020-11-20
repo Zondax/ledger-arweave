@@ -36,7 +36,7 @@
 <script>
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 import ArweaveApp from "@zondax/ledger-arweave";
-const Arweave = require('arweave');
+const Arweave = require('arweave').default;
 
 const EXAMPLE_PATH = `m/44'/472'/0'/0/0`;
 
@@ -238,8 +238,9 @@ export default {
         };
 
         this.log("Sending Request.. 1");
+        this.log(message);
 
-        response = await app.sign(EXAMPLE_PATH, message);
+        response = await app.sign(transaction);
 
         this.log("Response received!");
         this.log("Full response:");
