@@ -68,6 +68,17 @@ zxerr_t crypto_signature_part(uint8_t *sig, uint8_t index){
     return zxerr_ok;
 }
 
+zxerr_t crypto_pubkey_part(uint8_t *key, uint8_t index){
+    if (!crypto_store_is_initialized()){
+        return zxerr_invalid_crypto_settings;
+    }
+    cx_rsa_4096_public_key_t *rsa_pubkey = crypto_store_get_pubkey();
+    uint8_t *start = rsa_pubkey->n;
+    MEMCPY(key, start + index*256, 256);
+    return zxerr_ok;
+}
+
+
 zxerr_t crypto_deriveMasterSeed() {
     uint8_t masterSeed[64];
     uint32_t master_path[] = {

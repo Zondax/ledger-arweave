@@ -46,7 +46,7 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
     THROW(APDU_CODE_OK);
 }
 
-__Z_INLINE void handleGetSigPart1(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleGetPubKeyPart(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx, uint8_t index) {
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
 
     if (requireConfirmation) {
@@ -59,7 +59,7 @@ __Z_INLINE void handleGetSigPart1(volatile uint32_t *flags, volatile uint32_t *t
         return;
     }
 
-    zxerr_t err = crypto_getsignature_part(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, 0);
+    zxerr_t err = crypto_getpubkey_part(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, index);
     if (err != zxerr_ok){
         THROW(APDU_CODE_CONDITIONS_NOT_SATISFIED);
     }else{
@@ -68,7 +68,8 @@ __Z_INLINE void handleGetSigPart1(volatile uint32_t *flags, volatile uint32_t *t
     }
 }
 
-__Z_INLINE void handleGetSigPart2(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+
+__Z_INLINE void handleGetSigPart(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx, uint8_t index) {
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
 
     if (requireConfirmation) {
@@ -81,7 +82,7 @@ __Z_INLINE void handleGetSigPart2(volatile uint32_t *flags, volatile uint32_t *t
         return;
     }
 
-    zxerr_t err = crypto_getsignature_part(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, 1);
+    zxerr_t err = crypto_getsignature_part(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, index);
     if (err != zxerr_ok){
         THROW(APDU_CODE_CONDITIONS_NOT_SATISFIED);
     }else{
@@ -89,6 +90,7 @@ __Z_INLINE void handleGetSigPart2(volatile uint32_t *flags, volatile uint32_t *t
         THROW(APDU_CODE_OK);
     }
 }
+
 
 __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     if (!process_chunk(tx, rx)) {
@@ -147,14 +149,25 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                 }
 
                 case INS_GET_SIG1: {
-                    handleGetSigPart1(flags, tx, rx);
+                    handleGetSigPart(flags, tx, rx, 0);
                     break;
                 }
 
                 case INS_GET_SIG2: {
-                    handleGetSigPart2(flags, tx, rx);
+                    handleGetSigPart(flags, tx, rx, 1);
                     break;
                 }
+
+                case INS_GET_PK1: {
+                    handleGetPubKeyPart(flags, tx, rx, 0);
+                    break;
+                }
+
+                case INS_GET_PK2: {
+                    handleGetPubKeyPart(flags, tx, rx, 1);
+                    break;
+                }
+
 
                 default:
                     THROW(APDU_CODE_INS_NOT_SUPPORTED);

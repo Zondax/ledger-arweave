@@ -39,6 +39,8 @@ zxerr_t crypto_store_init();
 cx_rsa_4096_public_key_t* crypto_store_get_pubkey();
 cx_rsa_4096_private_key_t* crypto_store_get_privkey();
 
+zxerr_t crypto_pubkey_part(uint8_t *key, uint8_t index);
+
 #ifdef __cplusplus
 }
 #endif

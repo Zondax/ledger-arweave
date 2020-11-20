@@ -36,6 +36,9 @@
 #define INS_GET_SIG1                    0x10
 #define INS_GET_SIG2                    0x11
 
+#define INS_GET_PK1                    0x20
+#define INS_GET_PK2                    0x21
+
 void app_init();
 
 void app_main();

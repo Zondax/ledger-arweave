@@ -201,6 +201,13 @@ export default {
           qi: '0Dg_6VwT_tKPTu79TzVmWXFE4dU_EtBsrjuP2KRC97L0LriS_luaO5IdwpeDS0y8N-SfI_Plc0I8yHSQVt-TW_AafhDjZ5Y_1PWpKpInb7a_WfFXVZAFVPORMNzqDNuR5QB_VJYqfpxLGTrrud9AexZQIAqfl-ANpw9q0_ZQ40ZEdNchT6nnTGpexGNBGSQQI8RyokqfLoFQ7JeLsTpffqYjW73TRFE-Bi4vWKN4n9Fr6gH7rvx1G3oydrVGGkttc6v8s8ZtA1x5FSwReIffPJToz6hye-7M17RI6mC6VmcI6fJz_5Tmdkgz6Nael12e-82cllMpmm45gOyFNG9l5g'
         }
 
+        let pk1 = await app.getPubKeyPart(0);
+        let pk2 = await app.getPubKeyPart(1);
+        console.log(pk1);
+        console.log(pk2);
+        let pkLedger = Buffer.concat([Buffer.from(pk1.signature), Buffer.from(pk2.signature)]);
+        console.log(await arweave.utils.bufferTob64Url(pkLedger));
+
         let transaction = await arweave.createTransaction({
           target: '1seRanklLU_1VTGkEk7P0xAwMJfA7owA1JHW5KyZKlY',
           quantity: arweave.ar.arToWinston('10.5'),
@@ -256,8 +263,8 @@ export default {
         this.log("Full response:");
         this.log(response);
 
-        let sig1 = await app.getSignaturePart1();
-        let sig2 = await app.getSignaturePart2();
+        let sig1 = await app.getSignaturePart(0);
+        let sig2 = await app.getSignaturePart(1);
         console.log(sig1);
         console.log(sig2);
         let sigLedger = Buffer.concat([Buffer.from(sig1.signature), Buffer.from(sig2.signature)]);
@@ -266,16 +273,20 @@ export default {
         let sigb64 = await arweave.utils.stringToB64Url(sigLedger.toString('hex'));
         this.log(sigb64);
 
-        let sdata = await arweave.utils.stringToB64Url(signatureData.toString('hex'));
-
-        let sigjs = {signature: sigb64, id: sdata};
+        let ss = await arweave.crypto.verify(jwtKey.n, signatureData, sigLedger);
+        console.log(ss);
+        //ArweaveUtils.bufferTob64Url(await this.crypto.hash(rawSignature))
+/*
+        let sigjs = {signature: sigb64, id: ids};
 
         let s = await transaction.setSignature(sigjs);
 
-        this.log(s);
+        console.log(s);
 
         let v2 = await arweave.transactions.verify(transaction);
         this.log(v2);
+
+ */
 
       } finally {
         transport.close();

@@ -35,6 +35,19 @@ typedef struct {
     // TODO: FIXME
 } __attribute__((packed)) signature_t;
 
+zxerr_t crypto_getpubkey_part(uint8_t *buffer, uint16_t bufferLen, uint8_t index) {
+    if (!crypto_store_is_initialized() || bufferLen < 256) {
+        return zxerr_invalid_crypto_settings;
+    }
+
+    zxerr_t err = crypto_pubkey_part(buffer, index);
+    if (err != zxerr_ok){
+        return err;
+    }
+
+    return zxerr_ok;
+}
+
 zxerr_t crypto_getsignature_part(uint8_t *buffer, uint16_t bufferLen, uint8_t index) {
     if (!is_sig_set() || bufferLen < 256) {
         return zxerr_invalid_crypto_settings;

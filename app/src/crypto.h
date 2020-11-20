@@ -35,8 +35,9 @@ void crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *o
 zxerr_t crypto_fillAddress(uint8_t *buffer, uint16_t bufferLen, uint16_t *addrLen);
 
 zxerr_t crypto_getsignature_part(uint8_t *buffer, uint16_t bufferLen, uint8_t index);
+zxerr_t crypto_getpubkey_part(uint8_t *buffer, uint16_t bufferLen, uint8_t index);
 
-zxerr_t crypto_sign(uint8_t *signature,
+        zxerr_t crypto_sign(uint8_t *signature,
                      uint16_t signatureMaxlen,
                      const uint8_t *message,
                      uint16_t messageLen,

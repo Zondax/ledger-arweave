@@ -235,18 +235,30 @@ export default class ArweaveApp {
       .then(processGetAddrResponse, processErrorResponse);
   }
 
-  async getSignaturePart1() {
+  async getSignaturePart(partnum) {
     let emptyPath = Buffer.alloc(20);
-    return this.transport
-        .send(CLA, INS.GET_SIG_P1, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
-        .then(processGetSigResponse, processErrorResponse);
+    if (partnum == 0) {
+      return this.transport
+          .send(CLA, INS.GET_SIG_P1, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+          .then(processGetSigResponse, processErrorResponse);
+    }else{
+      return this.transport
+          .send(CLA, INS.GET_SIG_P1, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+          .then(processGetSigResponse, processErrorResponse);
+    }
   }
 
-  async getSignaturePart2() {
+  async getPubKeyPart(partnum) {
     let emptyPath = Buffer.alloc(20);
-    return this.transport
-        .send(CLA, INS.GET_SIG_P2, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
-        .then(processGetSigResponse, processErrorResponse);
+    if (partnum == 0) {
+      return this.transport
+          .send(CLA, INS.GET_PK_P1, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+          .then(processGetSigResponse, processErrorResponse);
+    }else{
+      return this.transport
+          .send(CLA, INS.GET_PK_P2, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+          .then(processGetSigResponse, processErrorResponse);
+    }
   }
 
   async showAddress() {
