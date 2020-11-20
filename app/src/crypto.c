@@ -16,6 +16,7 @@
 
 #include "crypto.h"
 #include "coin.h"
+#include "parser.h"
 #include "b64url.h"
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
@@ -39,7 +40,18 @@ zxerr_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *me
         return zxerr_invalid_crypto_settings;
     }
 
-    // FIXME: complete this
+    uint8_t digest[SHA384_DIGEST_LEN];
+
+    parser_error_t prs = parser_getDigest(digest, SHA384_DIGEST_LEN);
+
+    MEMCPY(buffer,digest,SHA384_DIGEST_LEN);
+    uint8_t sig[RSA_MODULUS_LEN];
+
+    cx_rsa_4096_private_key_t *rsa_privkey = crypto_store_get_privkey();
+
+    cx_rsa_sign(rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA384, digest, SHA384_DIGEST_LEN, sig, RSA_MODULUS_LEN);
+    MEMCPY(buffer, sig, 256);
+    *sigSize = 64;
     return zxerr_ok;
 }
 

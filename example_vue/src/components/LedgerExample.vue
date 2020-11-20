@@ -214,6 +214,16 @@ export default {
         transaction.addTag('Contract', '6eTVr8IKPNYbMHVcpHFXr-XNaL5hT6zRJXimcP-owmo');
         transaction.addTag('Input', '{"function":"transfer","target":"h-Bgr13OWUOkRGWrnMT0LuUKfJhRss5pfTdxHmNcXyw","qty":15000}');
 
+        await arweave.transactions.sign(transaction, jwtKey);
+
+        let signatureData = await transaction.getSignatureData();
+        console.log(signatureData);
+        let sig = await arweave.utils.b64UrlToBuffer(transaction.signature);
+        console.log(sig);
+
+        let v = await arweave.transactions.verify(transaction);
+        console.log(v);
+
         const message = {
           format: 2,
           id: '',
