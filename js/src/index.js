@@ -28,6 +28,21 @@ import {
 } from "./common";
 import Arweave from 'arweave';
 
+function processGetSigResponse(response) {
+  let partialResponse = response;
+
+  const errorCodeData = partialResponse.slice(-2);
+  const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
+
+  const signature = response.slice(0, 256);
+
+  return {
+    signature,
+    returnCode,
+    errorMessage: errorCodeToString(returnCode),
+  };
+}
+
 function processGetAddrResponse(response) {
   let partialResponse = response;
 
@@ -214,10 +229,24 @@ export default class ArweaveApp {
   }
 
   async getAddress() {
-    let memptyPath = Buffer.from([])
+    let emptyPath = Buffer.alloc(20);
     return this.transport
       .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
+  }
+
+  async getSignaturePart1() {
+    let emptyPath = Buffer.alloc(20);
+    return this.transport
+        .send(CLA, INS.GET_SIG_P1, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+        .then(processGetSigResponse, processErrorResponse);
+  }
+
+  async getSignaturePart2() {
+    let emptyPath = Buffer.alloc(20);
+    return this.transport
+        .send(CLA, INS.GET_SIG_P2, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+        .then(processGetSigResponse, processErrorResponse);
   }
 
   async showAddress() {

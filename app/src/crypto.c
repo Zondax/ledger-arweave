@@ -35,11 +35,23 @@ typedef struct {
     // TODO: FIXME
 } __attribute__((packed)) signature_t;
 
+zxerr_t crypto_getsignature_part(uint8_t *buffer, uint16_t bufferLen, uint8_t index) {
+    if (!is_sig_set() || bufferLen < 256) {
+        return zxerr_invalid_crypto_settings;
+    }
+
+    zxerr_t err = crypto_signature_part(buffer, index);
+    if (err != zxerr_ok){
+        return err;
+    }
+
+    return zxerr_ok;
+}
+
 zxerr_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *message, uint16_t messageLen, uint16_t *sigSize) {
     if (!crypto_store_is_initialized()) {
         return zxerr_invalid_crypto_settings;
     }
-
     uint8_t digest[SHA384_DIGEST_LEN];
 
     parser_error_t prs = parser_getDigest(digest, SHA384_DIGEST_LEN);

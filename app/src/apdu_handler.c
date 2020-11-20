@@ -46,6 +46,50 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
     THROW(APDU_CODE_OK);
 }
 
+__Z_INLINE void handleGetSigPart1(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+    uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
+
+    if (requireConfirmation) {
+        app_fill_address();
+
+        view_review_init(addr_getItem, addr_getNumItems, app_reply_address);
+        view_review_show();
+
+        *flags |= IO_ASYNCH_REPLY;
+        return;
+    }
+
+    zxerr_t err = crypto_getsignature_part(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, 0);
+    if (err != zxerr_ok){
+        THROW(APDU_CODE_CONDITIONS_NOT_SATISFIED);
+    }else{
+        *tx = 256;
+        THROW(APDU_CODE_OK);
+    }
+}
+
+__Z_INLINE void handleGetSigPart2(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+    uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
+
+    if (requireConfirmation) {
+        app_fill_address();
+
+        view_review_init(addr_getItem, addr_getNumItems, app_reply_address);
+        view_review_show();
+
+        *flags |= IO_ASYNCH_REPLY;
+        return;
+    }
+
+    zxerr_t err = crypto_getsignature_part(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, 1);
+    if (err != zxerr_ok){
+        THROW(APDU_CODE_CONDITIONS_NOT_SATISFIED);
+    }else{
+        *tx = 256;
+        THROW(APDU_CODE_OK);
+    }
+}
+
 __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     if (!process_chunk(tx, rx)) {
         THROW(APDU_CODE_OK);
@@ -55,7 +99,7 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
 
     const char *error_msg = tx_parse();
     zxerr_t err = app_sign_test();
-    *tx = 64;
+    *tx = SHA384_DIGEST_LEN;
     THROW(APDU_CODE_OK);
 
     if (error_msg != NULL) {
@@ -99,6 +143,16 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
 
                 case INS_SIGN: {
                     handleSign(flags, tx, rx);
+                    break;
+                }
+
+                case INS_GET_SIG1: {
+                    handleGetSigPart1(flags, tx, rx);
+                    break;
+                }
+
+                case INS_GET_SIG2: {
+                    handleGetSigPart2(flags, tx, rx);
                     break;
                 }
 

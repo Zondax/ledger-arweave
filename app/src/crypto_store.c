@@ -54,20 +54,19 @@ zxerr_t crypto_store_signature(uint8_t *sig){
     return zxerr_ok;
 }
 
-zxerr_t crypto_signature_part1(uint8_t *sig){
-    MEMCPY_NV(&N_crypto_sig.sig, sig, RSA_MODULUS_LEN);
-    uint8_t *start = &N_crypto_sig.sig;
-    sig = start;
-    return zxerr_ok;
+bool is_sig_set(){
+    return signature_set == 1;
 }
 
-zxerr_t crypto_signature_part2(uint8_t *sig){
+zxerr_t crypto_signature_part(uint8_t *sig, uint8_t index){
+    if (signature_set != 1){
+        return zxerr_invalid_crypto_settings;
+    }
     MEMCPY_NV(&N_crypto_sig.sig, sig, RSA_MODULUS_LEN);
     uint8_t *start = &N_crypto_sig.sig;
-    sig = start + 256;
+    MEMCPY(sig, start + index*256, 256);
     return zxerr_ok;
 }
-
 
 zxerr_t crypto_deriveMasterSeed() {
     uint8_t masterSeed[64];

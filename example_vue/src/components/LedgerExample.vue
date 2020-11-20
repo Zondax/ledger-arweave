@@ -255,6 +255,28 @@ export default {
         this.log("Response received!");
         this.log("Full response:");
         this.log(response);
+
+        let sig1 = await app.getSignaturePart1();
+        let sig2 = await app.getSignaturePart2();
+        console.log(sig1);
+        console.log(sig2);
+        let sigLedger = Buffer.concat([Buffer.from(sig1.signature), Buffer.from(sig2.signature)]);
+        console.log(sigLedger.byteLength);
+
+        let sigb64 = await arweave.utils.stringToB64Url(sigLedger.toString('hex'));
+        this.log(sigb64);
+
+        let sdata = await arweave.utils.stringToB64Url(signatureData.toString('hex'));
+
+        let sigjs = {signature: sigb64, id: sdata};
+
+        let s = await transaction.setSignature(sigjs);
+
+        this.log(s);
+
+        let v2 = await arweave.transactions.verify(transaction);
+        this.log(v2);
+
       } finally {
         transport.close();
       }
