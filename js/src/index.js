@@ -243,7 +243,7 @@ export default class ArweaveApp {
           .then(processGetSigResponse, processErrorResponse);
     }else{
       return this.transport
-          .send(CLA, INS.GET_SIG_P1, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+          .send(CLA, INS.GET_SIG_P2, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
           .then(processGetSigResponse, processErrorResponse);
     }
   }

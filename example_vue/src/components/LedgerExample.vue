@@ -270,23 +270,20 @@ export default {
         let sigLedger = Buffer.concat([Buffer.from(sig1.signature), Buffer.from(sig2.signature)]);
         console.log(sigLedger.byteLength);
 
-        let sigb64 = await arweave.utils.stringToB64Url(sigLedger.toString('hex'));
-        this.log(sigb64);
+        let sigb64 = await arweave.utils.bufferTob64Url(sigLedger);
 
-        let ss = await arweave.crypto.verify(jwtKey.n, signatureData, sigLedger);
-        console.log(ss);
-        //ArweaveUtils.bufferTob64Url(await this.crypto.hash(rawSignature))
-/*
-        let sigjs = {signature: sigb64, id: ids};
+        let idx = await arweave.crypto.hash(sigLedger);
+        let id = await arweave.utils.bufferTob64Url(idx);
 
-        let s = await transaction.setSignature(sigjs);
+        let sigjs = {signature: sigb64, id: id};
 
-        console.log(s);
+        await transaction.setSignature(sigjs);
 
         let v2 = await arweave.transactions.verify(transaction);
         this.log(v2);
 
- */
+        let v3 = await arweave.crypto.verify(jwtKey.n, signatureData, sigLedger);
+        console.log(v3);
 
       } finally {
         transport.close();

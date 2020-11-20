@@ -62,7 +62,6 @@ zxerr_t crypto_signature_part(uint8_t *sig, uint8_t index){
     if (signature_set != 1){
         return zxerr_invalid_crypto_settings;
     }
-    MEMCPY_NV(&N_crypto_sig.sig, sig, RSA_MODULUS_LEN);
     uint8_t *start = &N_crypto_sig.sig;
     MEMCPY(sig, start + index*256, 256);
     return zxerr_ok;

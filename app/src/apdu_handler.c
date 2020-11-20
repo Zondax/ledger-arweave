@@ -70,18 +70,6 @@ __Z_INLINE void handleGetPubKeyPart(volatile uint32_t *flags, volatile uint32_t 
 
 
 __Z_INLINE void handleGetSigPart(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx, uint8_t index) {
-    uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
-
-    if (requireConfirmation) {
-        app_fill_address();
-
-        view_review_init(addr_getItem, addr_getNumItems, app_reply_address);
-        view_review_show();
-
-        *flags |= IO_ASYNCH_REPLY;
-        return;
-    }
-
     zxerr_t err = crypto_getsignature_part(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, index);
     if (err != zxerr_ok){
         THROW(APDU_CODE_CONDITIONS_NOT_SATISFIED);
