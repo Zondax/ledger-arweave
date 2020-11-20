@@ -26,6 +26,11 @@ extern "C" {
 
 bool crypto_store_is_initialized();
 
+zxerr_t crypto_store_signature(uint8_t *sig);
+zxerr_t crypto_signature_part1(uint8_t *sig);
+zxerr_t crypto_signature_part2(uint8_t *sig);
+
+
 zxerr_t crypto_deriveMasterSeed();
 zxerr_t crypto_init_primes();
 zxerr_t crypto_init_keys();

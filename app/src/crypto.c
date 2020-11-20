@@ -50,8 +50,14 @@ zxerr_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *me
     cx_rsa_4096_private_key_t *rsa_privkey = crypto_store_get_privkey();
 
     cx_rsa_sign(rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA384, digest, SHA384_DIGEST_LEN, sig, RSA_MODULUS_LEN);
-    MEMCPY(buffer, sig, 256);
-    *sigSize = 64;
+
+    zxerr_t err = crypto_store_signature(sig);
+    if (err != zxerr_ok){
+        return err;
+    }
+
+    MEMCPY(buffer, digest, SHA384_DIGEST_LEN);
+    *sigSize = SHA384_DIGEST_LEN;
     return zxerr_ok;
 }
 

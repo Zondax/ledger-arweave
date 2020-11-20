@@ -33,10 +33,41 @@ crypto_store_t NV_CONST
 N_crypto_store_impl __attribute__ ((aligned(64)));
 #define N_crypto_store (*(NV_VOLATILE crypto_store_t *)PIC(&N_crypto_store_impl))
 
+typedef struct {
+    uint8_t sig[RSA_MODULUS_LEN];
+} crypto_sig_t;
+
+crypto_sig_t NV_CONST
+N_crypto_sig_impl __attribute__ ((aligned(64)));
+#define N_crypto_sig (*(NV_VOLATILE crypto_sig_t *)PIC(&N_crypto_sig_impl))
+
+uint8_t signature_set;
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+zxerr_t crypto_store_signature(uint8_t *sig){
+    MEMCPY_NV(&N_crypto_sig.sig, sig, RSA_MODULUS_LEN);
+    signature_set = 1;
+    return zxerr_ok;
+}
+
+zxerr_t crypto_signature_part1(uint8_t *sig){
+    MEMCPY_NV(&N_crypto_sig.sig, sig, RSA_MODULUS_LEN);
+    uint8_t *start = &N_crypto_sig.sig;
+    sig = start;
+    return zxerr_ok;
+}
+
+zxerr_t crypto_signature_part2(uint8_t *sig){
+    MEMCPY_NV(&N_crypto_sig.sig, sig, RSA_MODULUS_LEN);
+    uint8_t *start = &N_crypto_sig.sig;
+    sig = start + 256;
+    return zxerr_ok;
+}
+
 
 zxerr_t crypto_deriveMasterSeed() {
     uint8_t masterSeed[64];
