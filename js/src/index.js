@@ -97,10 +97,6 @@ export default class ArweaveApp {
   }
 
   static encodeTx(tx) {
-    console.log("encodeTx::1")
-
-    console.log(tx)
-
     let serializedTags = []
     for (let i = 0; i < tx.tags.length; i++) {
       let currentTag = tx.tags[i];
@@ -113,11 +109,7 @@ export default class ArweaveApp {
       serializedTags.push(encodedVal)
     }
 
-    console.log("encodeTx::2")
-
     let flatSerializedTags = ArweaveApp.flatten(serializedTags);
-
-    console.log("encodeTx::3")
 
     let tmp = [
       ArweaveApp.encodeWithLen(Arweave.utils.stringToBuffer(tx.format.toString())),
@@ -132,27 +124,16 @@ export default class ArweaveApp {
       ArweaveApp.encodeWithLen(tx.get("data_root", {decode: true, string: false})),
     ];
 
-    console.log("encodeTx::4")
-
-    console.log(tmp)
-
     let blob = ArweaveApp.flatten(tmp);
     console.log(Buffer.from(blob).toString("hex"))
-
-    console.log("encodeTx::5")
-
     return blob;
   }
 
   static prepareChunks(message) {
     const chunks = [];
     chunks.push(Buffer.alloc(20));
-
-    console.log("prepareChunks")
-
     const messageBuffer = Buffer.from(ArweaveApp.encodeTx(message));
 
-    console.log("tx encoded");
     const buffer = Buffer.concat([messageBuffer]);
     for (let i = 0; i < buffer.length; i += CHUNK_SIZE) {
       let end = i + CHUNK_SIZE;
@@ -161,7 +142,6 @@ export default class ArweaveApp {
       }
       chunks.push(buffer.slice(i, end));
     }
-    console.log("chunks ready");
     return chunks;
   }
 
@@ -381,8 +361,6 @@ export default class ArweaveApp {
             break;
           }
         }
-
-        console.log(result)
 
         return {
           digest: result.digest,
