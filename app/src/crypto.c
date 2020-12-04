@@ -23,17 +23,12 @@
 #include "crypto_store.h"
 
 void crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *out, unsigned int outLen) {
-    // FIXME: Review this
     cx_sha512_t ctx;
     cx_sha384_init(&ctx);
     cx_hash(&ctx.header, CX_LAST, in, inLen, out, outLen);
 }
 
 #include "cx.h"
-
-typedef struct {
-    // TODO: FIXME
-} __attribute__((packed)) signature_t;
 
 zxerr_t crypto_getpubkey_part(uint8_t *buffer, uint16_t bufferLen, uint8_t index) {
     if (!crypto_store_is_initialized() || bufferLen < 256) {
@@ -111,7 +106,6 @@ zxerr_t crypto_fillAddress(uint8_t *buffer, uint16_t buffer_len, uint16_t *addrL
         return zxerr_invalid_crypto_settings;
     }
 
-    // FIXME: hash
     uint8_t hash_pubkey[CX_SHA256_SIZE];
     cx_hash_sha256(rsa_pubkey->n, rsa_pubkey->size, hash_pubkey, CX_SHA256_SIZE);
 

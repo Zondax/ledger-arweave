@@ -262,7 +262,7 @@ export default {
         let v2 = await arweave.transactions.verify(transaction);
         this.log(v2);
 
-        let v3 = await arweave.crypto.verify(jwtKey.n, signatureData, rawSignatureLedger);
+        let v3 = await arweave.crypto.verify(owner, signatureData, rawSignatureLedger);
         console.log(v3);
 
       } finally {
