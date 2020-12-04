@@ -75,7 +75,10 @@ zxerr_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *me
 
     cx_rsa_4096_private_key_t *rsa_privkey = crypto_store_get_privkey();
 
-    cx_rsa_sign(rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA256, digest, SHA384_DIGEST_LEN, sig, RSA_MODULUS_LEN);
+    uint8_t digestsmall[CX_SHA256_SIZE];
+    cx_hash_sha256(digest, SHA384_DIGEST_LEN, digestsmall, CX_SHA256_SIZE);
+
+    cx_rsa_sign(rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA256, digestsmall, CX_SHA256_SIZE, sig, RSA_MODULUS_LEN);
 
     zxerr_t err = crypto_store_signature(sig);
     if (err != zxerr_ok){
