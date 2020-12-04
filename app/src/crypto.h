@@ -29,6 +29,7 @@ extern "C" {
 #define RSA_MODULUS_LEN 512     // 4096 key
 #define RSA_PRIME_LEN   256     // 4096 key
 #define SHA384_DIGEST_LEN 48
+#define RSA_MODULUS_HALVE 256
 
 void crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *out, unsigned int outLen);
 

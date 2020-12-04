@@ -63,7 +63,13 @@ zxerr_t crypto_signature_part(uint8_t *sig, uint8_t index){
         return zxerr_invalid_crypto_settings;
     }
     uint8_t *start = &N_crypto_sig.sig;
-    MEMCPY(sig, start + index*256, 256);
+    MEMCPY(sig, start + index*RSA_MODULUS_HALVE, RSA_MODULUS_HALVE);
+    if (index == 1){
+        uint8_t dummy[RSA_MODULUS_LEN];
+        MEMZERO(dummy, RSA_MODULUS_LEN);
+        MEMCPY_NV(&N_crypto_sig.sig, dummy, RSA_MODULUS_LEN);
+        signature_set = 0;
+    }
     return zxerr_ok;
 }
 
@@ -73,7 +79,7 @@ zxerr_t crypto_pubkey_part(uint8_t *key, uint8_t index){
     }
     cx_rsa_4096_public_key_t *rsa_pubkey = crypto_store_get_pubkey();
     uint8_t *start = rsa_pubkey->n;
-    MEMCPY(key, start + index*256, 256);
+    MEMCPY(key, start + index*RSA_MODULUS_HALVE, RSA_MODULUS_HALVE);
     return zxerr_ok;
 }
 
