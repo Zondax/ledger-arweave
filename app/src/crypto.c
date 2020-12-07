@@ -63,6 +63,9 @@ zxerr_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *me
     uint8_t digest[SHA384_DIGEST_LEN];
 
     parser_error_t prs = parser_getDigest(digest, SHA384_DIGEST_LEN);
+    if(prs != parser_ok){
+        return zxerr_unknown;
+    }
 
     MEMCPY(buffer,digest,SHA384_DIGEST_LEN);
     uint8_t sig[RSA_MODULUS_LEN];
@@ -73,7 +76,7 @@ zxerr_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *me
     uint8_t digestsmall[CX_SHA256_SIZE];
     cx_hash_sha256(digest, SHA384_DIGEST_LEN, digestsmall, CX_SHA256_SIZE);
 
-    cx_rsa_sign(rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA256, digestsmall, CX_SHA256_SIZE, sig, RSA_MODULUS_LEN);
+    cx_rsa_sign((const cx_rsa_private_key_t *)rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA256, digestsmall, CX_SHA256_SIZE, sig, RSA_MODULUS_LEN);
 
     zxerr_t err = crypto_store_signature(sig);
     if (err != zxerr_ok){

@@ -62,7 +62,7 @@ zxerr_t crypto_signature_part(uint8_t *sig, uint8_t index){
     if (signature_set != 1){
         return zxerr_invalid_crypto_settings;
     }
-    uint8_t *start = &N_crypto_sig.sig;
+    uint8_t *start = (uint8_t *)&N_crypto_sig.sig;
     MEMCPY(sig, start + index*RSA_MODULUS_HALVE, RSA_MODULUS_HALVE);
     if (index == 1){
         uint8_t dummy[RSA_MODULUS_LEN];
@@ -208,6 +208,10 @@ zxerr_t crypto_store_init() {
         crypto_init_keys();
 
         zemu_log_stack("initialized");
+        return zxerr_ok;
+    }else{
+        //do nothing
+        return zxerr_ok;
     }
 }
 
