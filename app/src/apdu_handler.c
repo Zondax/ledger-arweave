@@ -61,6 +61,7 @@ __Z_INLINE void handleGetPubKeyPart(volatile uint32_t *flags, volatile uint32_t 
 
     zxerr_t err = crypto_getpubkey_part(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, index);
     if (err != zxerr_ok){
+        *tx = 0;
         THROW(APDU_CODE_CONDITIONS_NOT_SATISFIED);
     }else{
         *tx = 256;
@@ -72,6 +73,7 @@ __Z_INLINE void handleGetPubKeyPart(volatile uint32_t *flags, volatile uint32_t 
 __Z_INLINE void handleGetSigPart(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx, uint8_t index) {
     zxerr_t err = crypto_getsignature_part(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, index);
     if (err != zxerr_ok){
+        *tx = 0;
         THROW(APDU_CODE_CONDITIONS_NOT_SATISFIED);
     }else{
         *tx = 256;
