@@ -42,7 +42,7 @@ describe('Basic checks', function () {
         }
     });
 
-    it('app version', async function () {
+    it.skip('app version', async function () {
         const sim = new Zemu(APP_PATH);
         try {
             simOptions.X11 = false;
@@ -109,7 +109,7 @@ describe('Basic checks', function () {
         };
     }
 
-    it('fake tx', async function () {
+    it.skip('fake tx', async function () {
         let exampleData = await getFakeTx();
         console.log(exampleData)
 
@@ -124,7 +124,7 @@ describe('Basic checks', function () {
         console.log(encodedTx.toString("hex"))
     });
 
-    it('get address', async function () {
+    it.skip('get address', async function () {
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(simOptions);
@@ -144,7 +144,7 @@ describe('Basic checks', function () {
         }
     });
 
-    it('show address', async function () {
+    it.skip('show address', async function () {
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(simOptions);
@@ -170,7 +170,7 @@ describe('Basic checks', function () {
         }
     });
 
-    it('show address - expert', async function () {
+    it.skip('show address - expert', async function () {
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(simOptions);
@@ -201,7 +201,7 @@ describe('Basic checks', function () {
         }
     });
 
-    it('sign - transfer', async function () {
+    it.skip('sign - transfer', async function () {
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(simOptions);

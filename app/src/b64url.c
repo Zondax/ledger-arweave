@@ -16,6 +16,7 @@
 #include <zxmacros.h>
 #include "base64.h"
 
+#pragma GCC diagnostic ignored "-Winvalid-pp-token"
 #define BASE64_PADDING_CHAR ''
 
 // Note: Arweave b64url replaces

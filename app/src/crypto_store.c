@@ -33,10 +33,56 @@ crypto_store_t NV_CONST
 N_crypto_store_impl __attribute__ ((aligned(64)));
 #define N_crypto_store (*(NV_VOLATILE crypto_store_t *)PIC(&N_crypto_store_impl))
 
+typedef struct {
+    uint8_t sig[RSA_MODULUS_LEN];
+} crypto_sig_t;
+
+crypto_sig_t NV_CONST
+N_crypto_sig_impl __attribute__ ((aligned(64)));
+#define N_crypto_sig (*(NV_VOLATILE crypto_sig_t *)PIC(&N_crypto_sig_impl))
+
+uint8_t signature_set;
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+zxerr_t crypto_store_signature(uint8_t *sig){
+    MEMCPY_NV(&N_crypto_sig.sig, sig, RSA_MODULUS_LEN);
+    signature_set = 1;
+    return zxerr_ok;
+}
+
+bool is_sig_set(){
+    return signature_set == 1;
+}
+
+zxerr_t crypto_signature_part(uint8_t *sig, uint8_t index){
+    if (signature_set != 1){
+        return zxerr_invalid_crypto_settings;
+    }
+    uint8_t *start = (uint8_t *)&N_crypto_sig.sig;
+    MEMCPY(sig, start + index*RSA_MODULUS_HALVE, RSA_MODULUS_HALVE);
+    if (index == 1){
+        uint8_t dummy[RSA_MODULUS_LEN];
+        MEMZERO(dummy, RSA_MODULUS_LEN);
+        MEMCPY_NV(&N_crypto_sig.sig, dummy, RSA_MODULUS_LEN);
+        signature_set = 0;
+    }
+    return zxerr_ok;
+}
+
+zxerr_t crypto_pubkey_part(uint8_t *key, uint8_t index){
+    if (!crypto_store_is_initialized()){
+        return zxerr_invalid_crypto_settings;
+    }
+    cx_rsa_4096_public_key_t *rsa_pubkey = crypto_store_get_pubkey();
+    uint8_t *start = rsa_pubkey->n;
+    MEMCPY(key, start + index*RSA_MODULUS_HALVE, RSA_MODULUS_HALVE);
+    return zxerr_ok;
+}
+
 
 zxerr_t crypto_deriveMasterSeed() {
     uint8_t masterSeed[64];
@@ -64,7 +110,7 @@ zxerr_t crypto_derivePrime(uint8_t *prime, uint8_t index) {
     // Now derive p_seed and q_seed from the master seed
     cx_sha3_t hash_sha3;
     uint8_t data_index[2] = {0, index};
-    cx_sha3_xof_init(&hash_sha3, 256, RSA_PRIME_LEN);
+    cx_shake256_init(&hash_sha3, RSA_PRIME_LEN * 8);
     cx_hash(&hash_sha3.header, 0, (void *) data_index, 2, NULL, 0);
     cx_hash(&hash_sha3.header, CX_LAST, (void *) &N_crypto_store.masterSeed, 32, prime, RSA_PRIME_LEN);
 
@@ -94,8 +140,6 @@ zxerr_t crypto_init_primes() {
     UX_WAIT_DISPLAYED();
     crypto_derivePrime(pq + RSA_PRIME_LEN, 1);;
 
-    // FIXME: Why setting high bit here?
-    // https://github.com/LedgerHQ/openpgp-card-app/blob/f3bdb7908eafcf23982d6af4a8da4bd7901fb704/src/gpg_gen.c#L146-L147
     *pq |= 0x80;
     *(pq + RSA_PRIME_LEN) |= 0x80;
 
@@ -164,6 +208,10 @@ zxerr_t crypto_store_init() {
         crypto_init_keys();
 
         zemu_log_stack("initialized");
+        return zxerr_ok;
+    }else{
+        //do nothing
+        return zxerr_ok;
     }
 }
 
@@ -172,5 +220,12 @@ cx_rsa_4096_public_key_t *crypto_store_get_pubkey() {
         return NULL;
     }
     return &N_crypto_store.rsa_pub;
+}
+
+cx_rsa_4096_private_key_t *crypto_store_get_privkey() {
+    if (!crypto_store_is_initialized()) {
+        return NULL;
+    }
+    return &N_crypto_store.rsa_priv;
 }
 

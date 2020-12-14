@@ -16,13 +16,13 @@
 
 #include "crypto.h"
 #include "coin.h"
+#include "parser.h"
 #include "b64url.h"
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #include "crypto_store.h"
 
 void crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *out, unsigned int outLen) {
-    // FIXME: Review this
     cx_sha512_t ctx;
     cx_sha384_init(&ctx);
     cx_hash(&ctx.header, CX_LAST, in, inLen, out, outLen);
@@ -30,16 +30,61 @@ void crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *o
 
 #include "cx.h"
 
-typedef struct {
-    // TODO: FIXME
-} __attribute__((packed)) signature_t;
+zxerr_t crypto_getpubkey_part(uint8_t *buffer, uint16_t bufferLen, uint8_t index) {
+    if (!crypto_store_is_initialized() || bufferLen < 256) {
+        return zxerr_invalid_crypto_settings;
+    }
+
+    zxerr_t err = crypto_pubkey_part(buffer, index);
+    if (err != zxerr_ok){
+        return err;
+    }
+
+    return zxerr_ok;
+}
+
+zxerr_t crypto_getsignature_part(uint8_t *buffer, uint16_t bufferLen, uint8_t index) {
+    if (!is_sig_set() || bufferLen < 256) {
+        return zxerr_invalid_crypto_settings;
+    }
+
+    zxerr_t err = crypto_signature_part(buffer, index);
+    if (err != zxerr_ok){
+        return err;
+    }
+
+    return zxerr_ok;
+}
 
 zxerr_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *message, uint16_t messageLen, uint16_t *sigSize) {
     if (!crypto_store_is_initialized()) {
         return zxerr_invalid_crypto_settings;
     }
+    uint8_t digest[SHA384_DIGEST_LEN];
 
-    // FIXME: complete this
+    parser_error_t prs = parser_getDigest(digest, SHA384_DIGEST_LEN);
+    if(prs != parser_ok){
+        return zxerr_unknown;
+    }
+
+    MEMCPY(buffer,digest,SHA384_DIGEST_LEN);
+    uint8_t sig[RSA_MODULUS_LEN];
+    MEMZERO(sig,RSA_MODULUS_LEN);
+
+    cx_rsa_4096_private_key_t *rsa_privkey = crypto_store_get_privkey();
+
+    uint8_t digestsmall[CX_SHA256_SIZE];
+    cx_hash_sha256(digest, SHA384_DIGEST_LEN, digestsmall, CX_SHA256_SIZE);
+
+    cx_rsa_sign((const cx_rsa_private_key_t *)rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA256, digestsmall, CX_SHA256_SIZE, sig, RSA_MODULUS_LEN);
+
+    zxerr_t err = crypto_store_signature(sig);
+    if (err != zxerr_ok){
+        return err;
+    }
+
+    MEMCPY(buffer, digest, SHA384_DIGEST_LEN);
+    *sigSize = SHA384_DIGEST_LEN;
     return zxerr_ok;
 }
 
@@ -64,7 +109,6 @@ zxerr_t crypto_fillAddress(uint8_t *buffer, uint16_t buffer_len, uint16_t *addrL
         return zxerr_invalid_crypto_settings;
     }
 
-    // FIXME: hash
     uint8_t hash_pubkey[CX_SHA256_SIZE];
     cx_hash_sha256(rsa_pubkey->n, rsa_pubkey->size, hash_pubkey, CX_SHA256_SIZE);
 

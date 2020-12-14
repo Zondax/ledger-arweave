@@ -33,6 +33,11 @@
 #define INS_GET_VERSION                 0x00
 #define INS_GET_PUBKEY                  0x01
 #define INS_SIGN                        0x02
+#define INS_GET_SIG1                    0x10
+#define INS_GET_SIG2                    0x11
+
+#define INS_GET_PK1                    0x20
+#define INS_GET_PK2                    0x21
 
 void app_init();
 

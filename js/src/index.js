@@ -28,6 +28,21 @@ import {
 } from "./common";
 import Arweave from 'arweave';
 
+function processGetSigResponse(response) {
+  let partialResponse = response;
+
+  const errorCodeData = partialResponse.slice(-2);
+  const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
+
+  const signature = response.slice(0, 256);
+
+  return {
+    signature,
+    returnCode,
+    errorMessage: errorCodeToString(returnCode),
+  };
+}
+
 function processGetAddrResponse(response) {
   let partialResponse = response;
 
@@ -82,10 +97,6 @@ export default class ArweaveApp {
   }
 
   static encodeTx(tx) {
-    console.log("encodeTx::1")
-
-    console.log(tx)
-
     let serializedTags = []
     for (let i = 0; i < tx.tags.length; i++) {
       let currentTag = tx.tags[i];
@@ -98,11 +109,7 @@ export default class ArweaveApp {
       serializedTags.push(encodedVal)
     }
 
-    console.log("encodeTx::2")
-
     let flatSerializedTags = ArweaveApp.flatten(serializedTags);
-
-    console.log("encodeTx::3")
 
     let tmp = [
       ArweaveApp.encodeWithLen(Arweave.utils.stringToBuffer(tx.format.toString())),
@@ -117,25 +124,15 @@ export default class ArweaveApp {
       ArweaveApp.encodeWithLen(tx.get("data_root", {decode: true, string: false})),
     ];
 
-    console.log("encodeTx::4")
-
-    console.log(tmp)
-
     let blob = ArweaveApp.flatten(tmp);
     console.log(Buffer.from(blob).toString("hex"))
-
-    console.log("encodeTx::5")
-
     return blob;
   }
 
   static prepareChunks(message) {
     const chunks = [];
-    chunks.push(Buffer.from([]))
-
-    console.log("prepareChunks")
-
-    const messageBuffer = ArweaveApp.encodeTx(message);
+    chunks.push(Buffer.alloc(20));
+    const messageBuffer = Buffer.from(ArweaveApp.encodeTx(message));
 
     const buffer = Buffer.concat([messageBuffer]);
     for (let i = 0; i < buffer.length; i += CHUNK_SIZE) {
@@ -145,7 +142,6 @@ export default class ArweaveApp {
       }
       chunks.push(buffer.slice(i, end));
     }
-
     return chunks;
   }
 
@@ -213,10 +209,36 @@ export default class ArweaveApp {
   }
 
   async getAddress() {
-    let emptyPath = Buffer.from([])
+    let emptyPath = Buffer.alloc(20);
     return this.transport
       .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
+  }
+
+  async getSignaturePart(partnum) {
+    let emptyPath = Buffer.alloc(20);
+    if (partnum == 0) {
+      return this.transport
+          .send(CLA, INS.GET_SIG_P1, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+          .then(processGetSigResponse, processErrorResponse);
+    }else{
+      return this.transport
+          .send(CLA, INS.GET_SIG_P2, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+          .then(processGetSigResponse, processErrorResponse);
+    }
+  }
+
+  async getPubKeyPart(partnum) {
+    let emptyPath = Buffer.alloc(20);
+    if (partnum == 0) {
+      return this.transport
+          .send(CLA, INS.GET_PK_P1, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+          .then(processGetSigResponse, processErrorResponse);
+    }else{
+      return this.transport
+          .send(CLA, INS.GET_PK_P2, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+          .then(processGetSigResponse, processErrorResponse);
+    }
   }
 
   async showAddress() {
@@ -245,16 +267,13 @@ export default class ArweaveApp {
           errorMessage = `${errorMessage} : ${response.slice(0, response.length - 2).toString("ascii")}`;
         }
 
-        let signatureCompact = null;
-        let signatureDER = null;
+        let signature = null;
         if (response.length > 2) {
-          signatureCompact = response.slice(0, 65);
-          signatureDER = response.slice(65, response.length - 2);
+          signature = response.slice(0, 64);
         }
-
+        console.log(signature);
         return {
-          signatureCompact,
-          signatureDER,
+          signature: signature,
           returnCode: returnCode,
           errorMessage: errorMessage,
         };
@@ -342,8 +361,6 @@ export default class ArweaveApp {
             break;
           }
         }
-
-        console.log(result)
 
         return {
           digest: result.digest,

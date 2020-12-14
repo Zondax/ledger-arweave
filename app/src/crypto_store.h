@@ -25,6 +25,10 @@ extern "C" {
 #endif
 
 bool crypto_store_is_initialized();
+bool is_sig_set();
+
+zxerr_t crypto_store_signature(uint8_t *sig);
+zxerr_t crypto_signature_part(uint8_t *sig, uint8_t index);
 
 zxerr_t crypto_deriveMasterSeed();
 zxerr_t crypto_init_primes();
@@ -33,6 +37,9 @@ zxerr_t crypto_init_keys();
 zxerr_t crypto_store_init();
 
 cx_rsa_4096_public_key_t* crypto_store_get_pubkey();
+cx_rsa_4096_private_key_t* crypto_store_get_privkey();
+
+zxerr_t crypto_pubkey_part(uint8_t *key, uint8_t index);
 
 #ifdef __cplusplus
 }
