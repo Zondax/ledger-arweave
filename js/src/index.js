@@ -209,42 +209,38 @@ export default class ArweaveApp {
   }
 
   async getAddress() {
-    let emptyPath = Buffer.alloc(20);
     return this.transport
-      .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+      .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
   }
 
   async getSignaturePart(partnum) {
-    let emptyPath = Buffer.alloc(20);
     if (partnum == 0) {
       return this.transport
-          .send(CLA, INS.GET_SIG_P1, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+          .send(CLA, INS.GET_SIG_P1, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
           .then(processGetSigResponse, processErrorResponse);
     }else{
       return this.transport
-          .send(CLA, INS.GET_SIG_P2, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+          .send(CLA, INS.GET_SIG_P2, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
           .then(processGetSigResponse, processErrorResponse);
     }
   }
 
   async getPubKeyPart(partnum) {
-    let emptyPath = Buffer.alloc(20);
     if (partnum == 0) {
       return this.transport
-          .send(CLA, INS.GET_PK_P1, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+          .send(CLA, INS.GET_PK_P1, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
           .then(processGetSigResponse, processErrorResponse);
     }else{
       return this.transport
-          .send(CLA, INS.GET_PK_P2, P1_VALUES.ONLY_RETRIEVE, 0, emptyPath, [0x9000])
+          .send(CLA, INS.GET_PK_P2, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
           .then(processGetSigResponse, processErrorResponse);
     }
   }
 
   async showAddress() {
-    let emptyPath = Buffer.from([])
     return this.transport
-      .send(CLA, INS.GET_PUBKEY, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, emptyPath, [0x9000])
+      .send(CLA, INS.GET_PUBKEY, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, Buffer.from([]), [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
   }
 
