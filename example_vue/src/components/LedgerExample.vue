@@ -12,11 +12,11 @@
     </button>
 
     <button @click="getAddress">
-      Get Pubkey
+      Get Address
     </button>
 
     <button @click="showAddress">
-      Show Pubkey
+      Show Address
     </button>
 
     <button @click="signExampleTx">

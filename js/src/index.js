@@ -210,7 +210,7 @@ export default class ArweaveApp {
 
   async getAddress() {
     return this.transport
-      .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
+      .send(CLA, INS.GET_ADDRESS, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
   }
 
@@ -240,7 +240,7 @@ export default class ArweaveApp {
 
   async showAddress() {
     return this.transport
-      .send(CLA, INS.GET_PUBKEY, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, Buffer.from([]), [0x9000])
+      .send(CLA, INS.GET_ADDRESS, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, Buffer.from([]), [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
   }
 
