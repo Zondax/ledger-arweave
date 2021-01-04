@@ -265,7 +265,7 @@ export default class ArweaveApp {
 
         let signature = null;
         if (response.length > 2) {
-          signature = response.slice(0, 64);
+          signature = response.slice(0, 48);
         }
         console.log(signature);
         return {

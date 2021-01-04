@@ -116,7 +116,6 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
     zemu_log_stack("handleSign");
 
     const char *error_msg = tx_parse();
-
     if (error_msg != NULL) {
         int error_msg_length = strlen(error_msg);
         MEMCPY(G_io_apdu_buffer, error_msg, error_msg_length);

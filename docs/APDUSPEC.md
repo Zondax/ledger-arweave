@@ -75,6 +75,7 @@ The general structure of commands and responses is as follows:
 ### SIGN
 
 This command shows the transaction content on screen and signs (if accepted) the transaction.
+The "owner" of the transaction should be the public-key of the ledger device (restricted).
 The RSA signature is stored in secure flash and should be retrieved using GET_SIG commands.
 It returns the 48-byte deephash of the transaction blob for (optional) verification.
 
