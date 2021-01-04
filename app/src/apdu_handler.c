@@ -40,6 +40,7 @@ __Z_INLINE void handleGetAddress(volatile uint32_t *flags, volatile uint32_t *tx
     }
 
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
+    MEMZERO(G_io_apdu_buffer,IO_APDU_BUFFER_SIZE);
 
     action_addr_len = 0;
     zxerr_t err = app_fill_address();
@@ -60,7 +61,7 @@ __Z_INLINE void handleGetAddress(volatile uint32_t *flags, volatile uint32_t *tx
     }
 }
 
-__Z_INLINE void handleGetPubKeyPart(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx, uint8_t index) {
+__Z_INLINE void handleGetPubKeyPart(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     *tx = 0;
     if(rx < APDU_MIN_LENGTH){
         THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
@@ -69,6 +70,8 @@ __Z_INLINE void handleGetPubKeyPart(volatile uint32_t *flags, volatile uint32_t 
     if(G_io_apdu_buffer[OFFSET_DATA_LEN] != 0){
         THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
     }
+    uint8_t index = G_io_apdu_buffer[OFFSET_P2];
+
     MEMZERO(G_io_apdu_buffer,IO_APDU_BUFFER_SIZE);
     zxerr_t err = crypto_getpubkey_part(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, index);
     if (err != zxerr_ok){
@@ -81,7 +84,7 @@ __Z_INLINE void handleGetPubKeyPart(volatile uint32_t *flags, volatile uint32_t 
 }
 
 
-__Z_INLINE void handleGetSigPart(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx, uint8_t index) {
+__Z_INLINE void handleGetSigPart(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     *tx = 0;
     if(rx < APDU_MIN_LENGTH){
         THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
@@ -90,6 +93,9 @@ __Z_INLINE void handleGetSigPart(volatile uint32_t *flags, volatile uint32_t *tx
     if(G_io_apdu_buffer[OFFSET_DATA_LEN] != 0){
         THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
     }
+
+    uint8_t index = G_io_apdu_buffer[OFFSET_P2];
+
     MEMZERO(G_io_apdu_buffer,IO_APDU_BUFFER_SIZE);
     zxerr_t err = crypto_getsignature_part(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, index);
     if (err != zxerr_ok){
@@ -155,23 +161,13 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                     break;
                 }
 
-                case INS_GET_SIG1: {
-                    handleGetSigPart(flags, tx, rx, 0);
+                case INS_GET_SIG: {
+                    handleGetSigPart(flags, tx, rx);
                     break;
                 }
 
-                case INS_GET_SIG2: {
-                    handleGetSigPart(flags, tx, rx, 1);
-                    break;
-                }
-
-                case INS_GET_PK1: {
-                    handleGetPubKeyPart(flags, tx, rx, 0);
-                    break;
-                }
-
-                case INS_GET_PK2: {
-                    handleGetPubKeyPart(flags, tx, rx, 1);
+                case INS_GET_PK: {
+                    handleGetPubKeyPart(flags, tx, rx);
                     break;
                 }
 

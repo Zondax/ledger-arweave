@@ -217,11 +217,11 @@ export default class ArweaveApp {
   async getSignaturePart(partnum) {
     if (partnum == 0) {
       return this.transport
-          .send(CLA, INS.GET_SIG_P1, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
+          .send(CLA, INS.GET_SIG, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
           .then(processGetSigResponse, processErrorResponse);
     }else{
       return this.transport
-          .send(CLA, INS.GET_SIG_P2, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
+          .send(CLA, INS.GET_SIG, P1_VALUES.ONLY_RETRIEVE, 1, Buffer.from([]), [0x9000])
           .then(processGetSigResponse, processErrorResponse);
     }
   }
@@ -229,11 +229,11 @@ export default class ArweaveApp {
   async getPubKeyPart(partnum) {
     if (partnum == 0) {
       return this.transport
-          .send(CLA, INS.GET_PK_P1, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
+          .send(CLA, INS.GET_PK, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
           .then(processGetSigResponse, processErrorResponse);
     }else{
       return this.transport
-          .send(CLA, INS.GET_PK_P2, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
+          .send(CLA, INS.GET_PK, P1_VALUES.ONLY_RETRIEVE, 1, Buffer.from([]), [0x9000])
           .then(processGetSigResponse, processErrorResponse);
     }
   }

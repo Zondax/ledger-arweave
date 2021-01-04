@@ -5,11 +5,9 @@ export const INS = {
   GET_VERSION: 0x00,
   GET_ADDRESS: 0x01,
   SIGN: 0x02,
-  GET_SIG_P1: 0x10,
-  GET_SIG_P2: 0x11,
 
-  GET_PK_P1: 0x20,
-  GET_PK_P2: 0x21,
+  GET_SIG: 0x10,
+  GET_PK: 0x20,
 };
 
 export const PAYLOAD_TYPE = {

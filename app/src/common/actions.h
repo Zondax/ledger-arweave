@@ -48,7 +48,6 @@ __Z_INLINE void app_reject() {
 
 __Z_INLINE zxerr_t app_fill_address() {
     // Put data directly in the apdu buffer
-    MEMZERO(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE);
     return crypto_fillAddress(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 2, &action_addr_len);
 }
 
