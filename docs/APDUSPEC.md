@@ -76,6 +76,7 @@ The general structure of commands and responses is as follows:
 
 This command shows the transaction content on screen and signs (if accepted) the transaction.
 The RSA signature is stored in secure flash and should be retrieved using GET_SIG commands.
+It returns the 48-byte deephash of the transaction blob for (optional) verification.
 
 #### Command
 
