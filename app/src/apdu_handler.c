@@ -29,21 +29,35 @@
 #include "coin.h"
 #include "zxmacros.h"
 
-__Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleGetAddress(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+    *tx = 0;
+    if(rx < APDU_MIN_LENGTH){
+        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
+    }
+
+    if(G_io_apdu_buffer[OFFSET_DATA_LEN] != 0){
+        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
+    }
+
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
 
-    if (requireConfirmation) {
-        app_fill_address();
+    action_addr_len = 0;
+    zxerr_t err = app_fill_address();
+    if (err != zxerr_ok || action_addr_len == 0) {
+        *tx = 0;
+        THROW(APDU_CODE_EXECUTION_ERROR);
+    }
 
+    if (requireConfirmation) {
         view_review_init(addr_getItem, addr_getNumItems, app_reply_address);
         view_review_show();
 
         *flags |= IO_ASYNCH_REPLY;
         return;
+    }else{
+        *tx = action_addr_len;
+        THROW(APDU_CODE_OK);
     }
-
-    *tx = app_fill_address();
-    THROW(APDU_CODE_OK);
 }
 
 __Z_INLINE void handleGetPubKeyPart(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx, uint8_t index) {
@@ -131,8 +145,8 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                     break;
                 }
 
-                case INS_GET_PUBKEY: {
-                    handleGetPubkey(flags, tx, rx);
+                case INS_GET_ADDRESS: {
+                    handleGetAddress(flags, tx, rx);
                     break;
                 }
 

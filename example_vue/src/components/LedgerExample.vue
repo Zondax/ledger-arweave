@@ -38,8 +38,6 @@ import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 import ArweaveApp from "@zondax/ledger-arweave";
 const Arweave = require('arweave').default;
 
-const EXAMPLE_PATH = `m/44'/472'/0'/0/0`;
-
 export default {
   name: "Ledger",
   props: {},
@@ -129,7 +127,7 @@ export default {
 
         // now it is possible to access all commands in the app
         this.log("Sending Request..");
-        response = await app.getAddress(EXAMPLE_PATH);
+        response = await app.getAddress();
         if (response.returnCode !== ArweaveApp.ErrorCode.NoError) {
           this.log(`Error [${response.returnCode}] ${response.errorMessage}`);
           return;
@@ -156,7 +154,7 @@ export default {
         // now it is possible to access all commands in the app
         this.log("Sending Request..");
         this.log("Please click in the device");
-        response = await app.showAddress(EXAMPLE_PATH);
+        response = await app.showAddress();
         if (response.returnCode !== ArweaveApp.ErrorCode.NoError) {
           this.log(`Error [${response.returnCode}] ${response.errorMessage}`);
           return;

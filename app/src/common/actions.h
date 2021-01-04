@@ -46,18 +46,10 @@ __Z_INLINE void app_reject() {
     io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, 2);
 }
 
-__Z_INLINE uint8_t app_fill_address() {
+__Z_INLINE zxerr_t app_fill_address() {
     // Put data directly in the apdu buffer
     MEMZERO(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE);
-
-    action_addr_len = 0;
-    zxerr_t err = crypto_fillAddress(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 2, &action_addr_len);
-
-    if (err != zxerr_ok || action_addr_len == 0) {
-        THROW(APDU_CODE_EXECUTION_ERROR);
-    }
-
-    return action_addr_len;
+    return crypto_fillAddress(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 2, &action_addr_len);
 }
 
 __Z_INLINE void app_reply_address() {
