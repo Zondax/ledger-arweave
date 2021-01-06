@@ -150,6 +150,7 @@ parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
     return parser_ok;
 }
 
+#if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
     zxerr_t zxerr;
     uint8_t rsakey[RSA_MODULUS_HALVE];
@@ -165,6 +166,12 @@ parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
     }
     return parser_ok;
 }
+#else
+parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
+    //do nothing
+    return parser_ok;
+}
+#endif
 
 uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
     // FIXME: Adjust later
