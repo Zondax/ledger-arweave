@@ -51,7 +51,7 @@ The general structure of commands and responses is as follows:
 
 ---
 
-### GET_PUBKEY
+### GET_ADDRESS
 
 #### Command
 
@@ -60,30 +60,24 @@ The general structure of commands and responses is as follows:
 | CLA     | byte (1) | Application Identifier    | 0x44               |
 | INS     | byte (1) | Instruction ID            | 0x01               |
 | P1      | byte (1) | Request User confirmation | No = 0             |
-| P2      | byte (1) | Parameter 2               | Chunk Index        |
+| P2      | byte (1) | Parameter 2               | Ignored        |
 | L       | byte (1) | Bytes in payload          | expected = 0       |
 
-Note: If UI request is enabled. Only chunk 0 is acceptable
-
 #### Response
-
-Chunk 0
 
 | Field      | Type      | Content           | Note                     |
 | ---------- | --------- | ----------------- | ------------------------ |
 | ADDR       | byte (43) | Address           | Encoded as B64URL        |
 | SW1-SW2    | byte (2)  | Return code       | see list of return codes |
 
-Chunk 1..4
-
-| Field      | Type      | Content           | Note                     |
-| ---------- | --------- | ----------------- | ------------------------ |
-| RSA PUBKEY | byte(128) | Pubkey Chunk      |                          |
-| SW1-SW2    | byte (2)  | Return code       | see list of return codes |
-
 ---
 
 ### SIGN
+
+This command shows the transaction content on screen and signs (if accepted) the transaction.
+The "owner" of the transaction should be the public-key of the ledger device (restricted).
+The RSA signature is stored in secure flash and should be retrieved using GET_SIG commands.
+It returns the 48-byte deephash of the transaction blob for (optional) verification.
 
 #### Command
 
@@ -145,7 +139,57 @@ Data is defined as:
 
 #### Response
 
-| Field       | Type            | Content     | Note                     |
-| ----------- | --------------- | ----------- | ------------------------ |
-| SIG         | byte (variable) | Signature   |                          |
-| SW1-SW2     | byte (2)        | Return code | see list of return codes |
+| Field       | Type            | Content     | Note                            |
+| ----------- | --------------- | ----------- | ------------------------       |  
+| Hash         | byte (48)      | Deephash    |  Deephash of tx blob   |
+| SW1-SW2     | byte (2)        | Return code | see list of return codes       |
+
+### GET_SIG
+
+This command can be taken to get the RSA signature of the ledger out. 
+It requires to have a successful SIGN command (see above) to have happened before.
+Only index = 0 or index = 1 are allowed, that return the first and second part of the RSA-4096 signature.
+After index = 1 is retrieved the signature in flash is zeroized.
+
+#### Command
+
+| Field   | Type     | Content                   | Expected           |
+| ------- | -------- | ------------------------- | ------------------ |
+| CLA     | byte (1) | Application Identifier    | 0x44               |
+| INS     | byte (1) | Instruction ID            | 0x10               |
+| P1      | byte (1) | Request User confirmation | Ignored           |
+| P2      | byte (1) | Parameter 2               | Index = 0 or 1       |
+| L       | byte (1) | Bytes in payload          | expected = 0       |
+
+#### Response
+
+| Field      | Type      | Content           | Note                     |
+| ---------- | --------- | ----------------- | ------------------------ |
+| SIG_PART       | byte (256) | Public key part | Signature bytes [256 * i ... 256 *(i+1)] |
+| SW1-SW2    | byte (2)  | Return code       | see list of return codes |
+
+---
+
+### GET_PK
+
+This command can be taken to get the "owner" (the RSA public key) of the ledger out.
+Only index = 0 or index = 1 are allowed, that return the first and second part of the RSA-4096 public key.
+
+#### Command
+
+| Field   | Type     | Content                   | Expected           |
+| ------- | -------- | ------------------------- | ------------------ |
+| CLA     | byte (1) | Application Identifier    | 0x44               |
+| INS     | byte (1) | Instruction ID            | 0x20               |
+| P1      | byte (1) | Request User confirmation | Ignored             |
+| P2      | byte (1) | Parameter 2               | Index = 0 or 1     |
+| L       | byte (1) | Bytes in payload          | expected = 0       |
+
+#### Response
+
+| Field      | Type      | Content           | Note                     |
+| ---------- | --------- | ----------------- | ------------------------ |
+| PK_PART       | byte (256) | Public key part | Pubkey bytes [256 * i ... 256 *(i+1)] |
+| SW1-SW2    | byte (2)  | Return code       | see list of return codes |
+
+---

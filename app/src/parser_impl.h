@@ -19,6 +19,8 @@
 #include "parser_txdef.h"
 #include "crypto.h"
 
+#define CONST_NUM_UI_ITEMS 6
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -94,8 +94,6 @@ zxerr_t crypto_deriveMasterSeed() {
             0x80000000u
     };
 
-    // Generate random seed by using Ed25519 private key
-    // FIXME: Review this
     os_perso_derive_node_bip32_seed_key(HDW_NORMAL,
                                         CX_CURVE_Ed25519,
                                         master_path, HDPATH_LEN_DEFAULT,

@@ -18,6 +18,7 @@
 #include "parser_impl.h"
 #include "parser_txdef.h"
 #include "app_mode.h"
+#include "crypto.h"
 
 parser_tx_t parser_tx_obj;
 
@@ -149,13 +150,29 @@ parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
     return parser_ok;
 }
 
+#if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
-    // Placeholder to run any coin specific validation
-    // TODO: Verify owner matches signer?
+    zxerr_t zxerr;
+    uint8_t rsakey[RSA_MODULUS_HALVE];
+    for(int i = 0; i < 2; i ++) {
+        MEMZERO(rsakey, RSA_MODULUS_HALVE);
+        zxerr = crypto_getpubkey_part(rsakey, RSA_MODULUS_HALVE, i);
+        if (zxerr != zxerr_ok) {
+            return parser_unexpected_error;
+        }
+        if (MEMCMP(v->owner.ptr + i *RSA_MODULUS_HALVE, rsakey, RSA_MODULUS_HALVE) != 0) {
+            return parser_unexpected_error;
+        }
+    }
     return parser_ok;
 }
+#else
+parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
+    //do nothing
+    return parser_ok;
+}
+#endif
 
 uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
-    // FIXME: Adjust later
-    return 5 + v->tags_count;
+    return CONST_NUM_UI_ITEMS + v->tags_count;
 }
