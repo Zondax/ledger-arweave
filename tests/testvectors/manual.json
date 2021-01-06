@@ -13,8 +13,9 @@
       "2 | Reward : 12345",
       "3 | Last tx [1/2] : A9Ic6RPOCXrpU1OzSFah3GfyUrCnFlAZ53NjPGj",
       "3 | Last tx [2/2] : kCjVDgbQ6T1SU8ArIYWevd2aj",
-      "4 | Data [1/2] : GQunzmbwk2_JPU7oJOmLrTMvj8v_7BJaF0weyjV",
-      "4 | Data [2/2] : n5Nc"
+      "4 | Data root [1/2] : GQunzmbwk2_JPU7oJOmLrTMvj8v_7BJaF0weyjV",
+      "4 | Data root [2/2] : n5Nc",
+      "5 | Data size : 88"
     ]
   },
   {
@@ -31,15 +32,16 @@
       "2 | Reward : 12345",
       "3 | Last tx [1/2] : A9Ic6RPOCXrpU1OzSFah3GfyUrCnFlAZ53NjPGj",
       "3 | Last tx [2/2] : kCjVDgbQ6T1SU8ArIYWevd2aj",
-      "4 | Data [1/2] : GQunzmbwk2_JPU7oJOmLrTMvj8v_7BJaF0weyjV",
-      "4 | Data [2/2] : n5Nc",
-      "5 | App-Name : SmartWeaveAction",
-      "6 | App-Version : 0.3.0",
-      "7 | Contract [1/2] : 6eTVr8IKPNYbMHVcpHFXr-XNaL5hT6zRJXimcP-",
-      "7 | Contract [2/2] : owmo",
-      "8 | Input [1/3] : {\"function\":\"transfer\",\"target\":\"h-Bgr1",
-      "8 | Input [2/3] : 3OWUOkRGWrnMT0LuUKfJhRss5pfTdxHmNcXyw\",",
-      "8 | Input [3/3] : \"qty\":15000}"
+      "4 | Data root [1/2] : GQunzmbwk2_JPU7oJOmLrTMvj8v_7BJaF0weyjV",
+      "4 | Data root [2/2] : n5Nc",
+      "5 | Data size : 88",
+      "6 | App-Name : SmartWeaveAction",
+      "7 | App-Version : 0.3.0",
+      "8 | Contract [1/2] : 6eTVr8IKPNYbMHVcpHFXr-XNaL5hT6zRJXimcP-",
+      "8 | Contract [2/2] : owmo",
+      "9 | Input [1/3] : {\"function\":\"transfer\",\"target\":\"h-Bgr1",
+      "9 | Input [2/3] : 3OWUOkRGWrnMT0LuUKfJhRss5pfTdxHmNcXyw\",",
+      "9 | Input [3/3] : \"qty\":15000}"
     ]
   }
 ]

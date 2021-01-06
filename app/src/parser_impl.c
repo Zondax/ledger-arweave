@@ -174,6 +174,5 @@ parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
 #endif
 
 uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
-    // FIXME: Adjust later
-    return 5 + v->tags_count;
+    return CONST_NUM_UI_ITEMS + v->tags_count;
 }
