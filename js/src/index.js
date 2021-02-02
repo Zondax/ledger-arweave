@@ -215,18 +215,18 @@ export default class ArweaveApp {
   }
 
   async getAddress() {
-    let req1 = this.getAddressHash();
+    let req1 = await this.getAddressHash();
 
     if (req1.returnCode !== 0x9000) {
       return req1;
     }
 
-    let req2 = this.getPubKeyPart(0);
+    let req2 = await this.getPubKeyPart(0);
     if (req2.returnCode !== 0x9000) {
       return req2;
     }
 
-    let req3 = this.getPubKeyPart(1);
+    let req3 = await this.getPubKeyPart(1);
     if (req3.returnCode !== 0x9000) {
       return req3;
     }
@@ -306,18 +306,18 @@ export default class ArweaveApp {
   }
 
   async sign(message) {
-    let req1 = this.signGetDigest(message);
+    let req1 = await this.signGetDigest(message);
 
     if (req1.returnCode !== 0x9000) {
       return req1;
     }
 
-    let req2 = this.getSignaturePart(0);
+    let req2 = await this.getSignaturePart(0);
     if (req2.returnCode !== 0x9000) {
       return req2;
     }
 
-    let req3 = this.getSignaturePart(1);
+    let req3 = await this.getSignaturePart(1);
     if (req3.returnCode !== 0x9000) {
       return req3;
     }
