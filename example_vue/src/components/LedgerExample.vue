@@ -187,13 +187,8 @@ export default {
           logging: false,     // Enable network request logging
         });
 
-        let pk1 = await app.getPubKeyPart(0);
-        let pk2 = await app.getPubKeyPart(1);
-        console.log(pk1);
-        console.log(pk2);
-        let pkLedger = Buffer.concat([Buffer.from(pk1.signature), Buffer.from(pk2.signature)]);
-        let owner = await arweave.utils.bufferTob64Url(pkLedger);
-        console.log(owner);
+        let addr = await app.getAddress();
+        let owner = addr.owner;
 
         let transactionAttributes = {
           target: '1seRanklLU_1VTGkEk7P0xAwMJfA7owA1JHW5KyZKlY',
@@ -243,14 +238,10 @@ export default {
         response = await app.sign(transaction);
         this.log("Signature received!");
 
-        let sig1 = await app.getSignaturePart(0);
-        let sig2 = await app.getSignaturePart(1);
-        let rawSignatureLedger = Buffer.concat([Buffer.from(sig1.signature), Buffer.from(sig2.signature)]);
-        console.log(rawSignatureLedger.byteLength);
 
-        let id = await arweave.crypto.hash(rawSignatureLedger);
+        let id = await arweave.crypto.hash(response.signature);
         let sigjs = {
-          signature: await arweave.utils.bufferTob64Url(rawSignatureLedger),
+          signature: await arweave.utils.bufferTob64Url(response.signature),
           id: await arweave.utils.bufferTob64Url(id)
         };
 
@@ -260,7 +251,7 @@ export default {
         let v2 = await arweave.transactions.verify(transaction);
         this.log(v2);
 
-        let v3 = await arweave.crypto.verify(owner, signatureData, rawSignatureLedger);
+        let v3 = await arweave.crypto.verify(owner, signatureData, response.signature);
         console.log(v3);
 
       } finally {

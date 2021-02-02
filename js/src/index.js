@@ -28,16 +28,16 @@ import {
 } from "./common";
 import Arweave from 'arweave';
 
-function processGetSigResponse(response) {
+function processGetRSAResponse(response) {
   let partialResponse = response;
 
   const errorCodeData = partialResponse.slice(-2);
   const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
 
-  const signature = response.slice(0, 256);
+  const output = response.slice(0, 256);
 
   return {
-    signature,
+    output,
     returnCode,
     errorMessage: errorCodeToString(returnCode),
   };
@@ -208,21 +208,50 @@ export default class ArweaveApp {
     }, processErrorResponse);
   }
 
-  async getAddress() {
+  async getAddressHash() {
     return this.transport
       .send(CLA, INS.GET_ADDRESS, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
+  }
+
+  async getAddress() {
+    let req1 = this.getAddressHash();
+
+    if (req1.returnCode !== 0x9000) {
+      return req1;
+    }
+
+    let req2 = this.getPubKeyPart(0);
+    if (req2.returnCode !== 0x9000) {
+      return req2;
+    }
+
+    let req3 = this.getPubKeyPart(1);
+    if (req3.returnCode !== 0x9000) {
+      return req3;
+    }
+
+    let pk = Buffer.concat([Buffer.from(req2.output), Buffer.from(req3.output)]);
+    let owner = await Arweave.utils.bufferTob64Url(pk);
+
+    return {
+      address: req1.address,
+      pubkey: pk,
+      owner: owner,
+      returnCode: 0x9000,
+      errorMessage: errorCodeToString(0x9000),
+    };
   }
 
   async getSignaturePart(partnum) {
     if (partnum == 0) {
       return this.transport
           .send(CLA, INS.GET_SIG, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
-          .then(processGetSigResponse, processErrorResponse);
+          .then(processGetRSAResponse, processErrorResponse);
     }else{
       return this.transport
           .send(CLA, INS.GET_SIG, P1_VALUES.ONLY_RETRIEVE, 1, Buffer.from([]), [0x9000])
-          .then(processGetSigResponse, processErrorResponse);
+          .then(processGetRSAResponse, processErrorResponse);
     }
   }
 
@@ -230,11 +259,11 @@ export default class ArweaveApp {
     if (partnum == 0) {
       return this.transport
           .send(CLA, INS.GET_PK, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
-          .then(processGetSigResponse, processErrorResponse);
+          .then(processGetRSAResponse, processErrorResponse);
     }else{
       return this.transport
           .send(CLA, INS.GET_PK, P1_VALUES.ONLY_RETRIEVE, 1, Buffer.from([]), [0x9000])
-          .then(processGetSigResponse, processErrorResponse);
+          .then(processGetRSAResponse, processErrorResponse);
     }
   }
 
@@ -263,13 +292,13 @@ export default class ArweaveApp {
           errorMessage = `${errorMessage} : ${response.slice(0, response.length - 2).toString("ascii")}`;
         }
 
-        let signature = null;
+        let output = null;
         if (response.length > 2) {
-          signature = response.slice(0, 48);
+          output = response.slice(0, 48);
         }
-        console.log(signature);
+        console.log(output);
         return {
-          signature: signature,
+          output: output,
           returnCode: returnCode,
           errorMessage: errorMessage,
         };
@@ -277,6 +306,33 @@ export default class ArweaveApp {
   }
 
   async sign(message) {
+    let req1 = this.signGetDigest(message);
+
+    if (req1.returnCode !== 0x9000) {
+      return req1;
+    }
+
+    let req2 = this.getSignaturePart(0);
+    if (req2.returnCode !== 0x9000) {
+      return req2;
+    }
+
+    let req3 = this.getSignaturePart(1);
+    if (req3.returnCode !== 0x9000) {
+      return req3;
+    }
+
+    let signature = Buffer.concat([Buffer.from(req2.output), Buffer.from(req3.output)]);
+
+    return {
+      deephash: req1.digest,
+      signature: signature,
+      returnCode: 0x9000,
+      errorMessage: errorCodeToString(0x9000),
+    };
+  }
+
+  async signGetDigest(message) {
     console.log("sign")
 
     return this.signGetChunks(message).then((chunks) => {
@@ -284,7 +340,7 @@ export default class ArweaveApp {
         let result = {
           returnCode: response.returnCode,
           errorMessage: response.errorMessage,
-          signature: null,
+          output: null,
         };
 
         for (let i = 1; i < chunks.length; i += 1) {
@@ -301,7 +357,7 @@ export default class ArweaveApp {
           returnCode: result.returnCode,
           errorMessage: result.errorMessage,
           // ///
-          signature: result.signature,
+          digest: result.output,
         };
       }, processErrorResponse);
     }, processErrorResponse);
