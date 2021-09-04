@@ -21,8 +21,9 @@
 #include "apdu_codes.h"
 #include <os_io_seproxyhal.h>
 #include "coin.h"
+#include "zxerror.h"
 
-extern uint16_t action_addr_len;
+extern uint16_t action_addrResponseLen;
 
 __Z_INLINE void app_sign() {
     const uint8_t *message = tx_get_buffer();
@@ -48,12 +49,12 @@ __Z_INLINE void app_reject() {
 
 __Z_INLINE zxerr_t app_fill_address() {
     // Put data directly in the apdu buffer
-    return crypto_fillAddress(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 2, &action_addr_len);
+    return crypto_fillAddress(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 2, &action_addrResponseLen);
 }
 
 __Z_INLINE void app_reply_address() {
-    set_code(G_io_apdu_buffer, action_addr_len, APDU_CODE_OK);
-    io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, action_addr_len + 2);
+    set_code(G_io_apdu_buffer, action_addrResponseLen, APDU_CODE_OK);
+    io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, action_addrResponseLen + 2);
 }
 
 __Z_INLINE void app_reply_error() {

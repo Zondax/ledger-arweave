@@ -15,13 +15,20 @@
 ********************************************************************************/
 #pragma once
 
-#include "cx.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "zxmacros.h"
 #include <stdbool.h>
 #include "zxerror.h"
 
-#ifdef __cplusplus
-extern "C" {
+#if defined(TARGET_NANOS)
+#include "lcx_rsa.h"
+#endif
+
+#if defined(TARGET_NANOS) || defined(TARGET_NANOX)
+#include "cx.h"
 #endif
 
 bool crypto_store_is_initialized();

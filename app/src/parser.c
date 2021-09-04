@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <zxmacros.h>
+#include "zxformat.h"
 #include "parser_impl.h"
 #include "parser.h"
 #include "parser_txdef.h"
@@ -30,13 +31,15 @@ void __assert_fail(const char * assertion, const char * file, unsigned int line,
 #endif
 
 parser_error_t parser_parse(parser_context_t *ctx, const uint8_t *data, size_t dataLen) {
+    if (dataLen < 1) {
+        return parser_no_data;
+    }
     CHECK_PARSER_ERR(parser_init(ctx, data, dataLen))
     return _read(ctx, &parser_tx_obj);
 }
 
 parser_error_t parser_validate(const parser_context_t *ctx) {
     CHECK_PARSER_ERR(_validateTx(ctx, &parser_tx_obj))
-
     // Iterate through all items to check that all can be shown and are valid
     uint8_t numItems = 0;
     CHECK_PARSER_ERR(parser_getNumItems(ctx, &numItems));

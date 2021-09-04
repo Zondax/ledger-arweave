@@ -76,10 +76,11 @@ cmake-build-fuzz/
 /app/bin/
 /app/debug/
 /app/obj/
+/build
 
 \deps/*
 !\deps/nanos-secure-sdk
-\deps/nano2-sdk
+!\deps/nanox-secure-sdk
 !\deps/ledger-zxlib
 
 node_modules/.yarn-integrity

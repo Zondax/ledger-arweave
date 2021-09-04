@@ -15,14 +15,13 @@ using std::size_t;
 static char PARSER_KEY[16384];
 static char PARSER_VALUE[16384];
 
-parser_tx_t txObj;
-
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
+    parser_tx_t txObj;
     parser_context_t ctx;
     parser_error_t rc;
 
-    rc = parser_parse(&ctx, data, size);
+    rc = parser_parse(&ctx, data, size, &txObj);
     if (rc != parser_ok) {
         return 0;
     }

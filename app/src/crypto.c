@@ -56,7 +56,7 @@ zxerr_t crypto_getsignature_part(uint8_t *buffer, uint16_t bufferLen, uint8_t in
     return zxerr_ok;
 }
 
-zxerr_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *message, uint16_t messageLen, uint16_t *sigSize) {
+zxerr_t crypto_sign(uint8_t *buffer, __Z_UNUSED uint16_t signatureMaxlen, __Z_UNUSED const uint8_t *message, __Z_UNUSED uint16_t messageLen, uint16_t *sigSize) {
     if (!crypto_store_is_initialized()) {
         return zxerr_invalid_crypto_settings;
     }

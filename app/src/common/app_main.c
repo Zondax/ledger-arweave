@@ -20,6 +20,7 @@
 #include <string.h>
 #include <os_io_seproxyhal.h>
 #include <os.h>
+#include <ux.h>
 
 #include "view.h"
 #include "actions.h"
@@ -31,7 +32,11 @@
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
+static bool tx_initialized = false;
+
 unsigned char io_event(unsigned char channel) {
+    UNUSED(channel);
+
     switch (G_io_seproxyhal_spi_buffer[0]) {
         case SEPROXYHAL_TAG_FINGER_EVENT: //
             UX_FINGER_EVENT(G_io_seproxyhal_spi_buffer);
@@ -92,41 +97,51 @@ unsigned short io_exchange_al(unsigned char channel, unsigned short tx_len) {
 }
 
 bool process_chunk(volatile uint32_t *tx, uint32_t rx) {
+    UNUSED(tx);
     const uint8_t payloadType = G_io_apdu_buffer[OFFSET_PAYLOAD_TYPE];
+
+    if (rx < OFFSET_DATA) {
+        THROW(APDU_CODE_WRONG_LENGTH);
+    }
 
     if (G_io_apdu_buffer[OFFSET_P2] != 0) {
         THROW(APDU_CODE_INVALIDP1P2);
     }
 
-    if (rx < OFFSET_DATA) {
-        THROW(APDU_CODE_WRONG_LENGTH);
-    }
 
     uint32_t added;
     switch (payloadType) {
         case 0:
             tx_initialize();
             tx_reset();
+            tx_initialized = true;
             return false;
         case 1:
             added = tx_append(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA);
             if (added != rx - OFFSET_DATA) {
+                tx_initialized = false;
                 THROW(APDU_CODE_OUTPUT_BUFFER_TOO_SMALL);
             }
             return false;
         case 2:
+            if (!tx_initialized) {
+                THROW(APDU_CODE_TX_NOT_INITIALIZED);
+            }
             added = tx_append(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA);
             if (added != rx - OFFSET_DATA) {
+                tx_initialized = false;
                 THROW(APDU_CODE_OUTPUT_BUFFER_TOO_SMALL);
             }
             return true;
     }
-
+    tx_initialized = false;
     THROW(APDU_CODE_INVALIDP1P2);
 }
 
 void handle_generic_apdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
-    if (rx > 4 && os_memcmp(G_io_apdu_buffer, "\xE0\x01\x00\x00", 4) == 0) {
+    UNUSED(flags);
+
+    if (rx > 4 && memcmp(G_io_apdu_buffer, "\xE0\x01\x00\x00", 4) == 0) {
         // Respond to get device info command
         uint8_t *p = G_io_apdu_buffer;
         // Target ID        4 bytes
@@ -160,6 +175,7 @@ void app_init() {
 
     USB_power(0);
     USB_power(1);
+    view_idle_show(0, NULL);
 
 #ifdef HAVE_BLE
     // Enable Bluetooth
@@ -170,3 +186,62 @@ void app_init() {
     crypto_store_init();
     view_idle_show(0, NULL);
 }
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
+
+void app_main() {
+    volatile uint32_t rx = 0, tx = 0, flags = 0;
+
+    for (;;) {
+        volatile uint16_t sw = 0;
+
+        BEGIN_TRY;
+        {
+            TRY;
+            {
+                rx = tx;
+                tx = 0;
+
+                rx = io_exchange(CHANNEL_APDU | flags, rx);
+                flags = 0;
+                CHECK_APP_CANARY()
+
+                if (rx == 0)
+                    THROW(APDU_CODE_EMPTY_BUFFER);
+
+                handle_generic_apdu(&flags, &tx, rx);
+                CHECK_APP_CANARY()
+
+                handleApdu(&flags, &tx, rx);
+                CHECK_APP_CANARY()
+            }
+            CATCH(EXCEPTION_IO_RESET)
+            {
+                // reset IO and UX before continuing
+                app_init();
+                continue;
+            }
+            CATCH_OTHER(e);
+            {
+                switch (e & 0xF000) {
+                    case 0x6000:
+                    case 0x9000:
+                        sw = e;
+                        break;
+                    default:
+                        sw = 0x6800 | (e & 0x7FF);
+                        break;
+                }
+                G_io_apdu_buffer[tx] = sw >> 8;
+                G_io_apdu_buffer[tx + 1] = sw;
+                tx += 2;
+            }
+            FINALLY;
+            {}
+        }
+        END_TRY;
+    }
+}
+
+#pragma clang diagnostic pop
