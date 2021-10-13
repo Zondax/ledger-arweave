@@ -39,6 +39,10 @@ all: bin/app.elf
 	@rm $(CURDIR)/output/app.elf
 
 DEFINES       += HAVE_RSA
+INCLUDES_PATH += $(BOLOS_SDK)/lib_cxng/src
+SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_rsa.c
+SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_pkcs1.c
+SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_utils.c
 include $(BOLOS_SDK)/Makefile.defines
 
 #DEFINES += APP_SECRET_MODE_ENABLED
@@ -122,7 +126,6 @@ DEFINES       += USB_SEGMENT_SIZE=64
 DEFINES       += HAVE_BOLOS_APP_STACK_CANARY
 
 DEFINES       += HAVE_WEBUSB WEBUSB_URL_SIZE_B=0 WEBUSB_URL=""
-DEFINES	      += HAVE_RSA
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
 DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=300
