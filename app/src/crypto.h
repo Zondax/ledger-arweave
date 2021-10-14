@@ -20,6 +20,15 @@
 extern "C" {
 #endif
 
+#if defined(TARGET_NANOS) || defined(TARGET_NANOX)
+
+#ifdef HAVE_RSA
+#include "cx_ram.h"
+extern union cx_u G_cx;
+#endif // HAVE_RSA
+
+#endif
+
 #include <zxmacros.h>
 #include "coin.h"
 #include <stdbool.h>

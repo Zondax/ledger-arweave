@@ -40,9 +40,9 @@ all: bin/app.elf
 
 DEFINES       += HAVE_RSA
 INCLUDES_PATH += $(BOLOS_SDK)/lib_cxng/src
-SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_rsa.c
-SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_pkcs1.c
-SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_utils.c
+APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_rsa.c
+APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_pkcs1.c
+APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_utils.c
 include $(BOLOS_SDK)/Makefile.defines
 
 #DEFINES += APP_SECRET_MODE_ENABLED
