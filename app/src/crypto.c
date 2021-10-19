@@ -20,6 +20,9 @@
 #include "b64url.h"
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
+#ifdef HAVE_RSA
+union cx_u G_cx;
+#endif // HAVE_RSA
 #include "crypto_store.h"
 
 void crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *out, unsigned int outLen) {

@@ -17,7 +17,6 @@
 #include "os.h"
 #include "view.h"
 #include "coin.h"
-#include "crypto.h"
 #include "app_main.h"
 #include "crypto_store.h"
 

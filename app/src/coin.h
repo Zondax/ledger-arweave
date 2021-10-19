@@ -21,6 +21,11 @@ extern "C" {
 
 #define CLA                             0x44
 
+#define RSA_MODULUS_LEN 512     // 4096 key
+#define RSA_PRIME_LEN   256     // 4096 key
+#define SHA384_DIGEST_LEN 48
+#define RSA_MODULUS_HALVE 256
+
 #include <stdint.h>
 #include <stddef.h>
 
