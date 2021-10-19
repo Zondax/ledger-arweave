@@ -95,3 +95,7 @@ app/output/app.apdu
 app/output/app.sha256
 
 app/pkg/installer_s.sh
+
+app/glyphs/glyphs.c
+
+app/glyphs/glyphs.h

@@ -39,10 +39,6 @@ all: bin/app.elf
 	@rm $(CURDIR)/output/app.elf
 
 DEFINES       += HAVE_RSA
-INCLUDES_PATH += $(BOLOS_SDK)/lib_cxng/src
-APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_rsa.c
-APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_pkcs1.c
-APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_utils.c
 include $(BOLOS_SDK)/Makefile.defines
 
 #DEFINES += APP_SECRET_MODE_ENABLED
@@ -86,6 +82,11 @@ APP_LOAD_PARAMS = --appFlags 0x200 --delete $(COMMON_LOAD_PARAMS) --path $(APPPA
 DEFINES += HAVE_PENDING_REVIEW_SCREEN
 
 ifeq ($(TARGET_NAME),TARGET_NANOS)
+INCLUDES_PATH += $(BOLOS_SDK)/lib_cxng/src
+APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_rsa.c
+APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_pkcs1.c
+APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_utils.c
+
 APP_STACK_SIZE:=3172
 ICONNAME:=$(CURDIR)/nanos_icon.gif
 OUTPUT_ELF ?= $(CURDIR)/output/app_s.elf
