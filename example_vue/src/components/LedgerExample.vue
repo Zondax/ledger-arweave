@@ -234,6 +234,9 @@ export default {
         // Let's try signing with a Ledger
 
         console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        //Reset transaction
+        transaction = await arweave.createTransaction(transactionAttributes)
+        console.log(transaction)
 
         response = await app.sign(transaction);
         this.log("Signature received!");
@@ -246,13 +249,16 @@ export default {
         };
 
         await transaction.setSignature(sigjs);
+        //Manually add owner again, it disappeared..
+        await transaction.setOwner(owner);
         console.log(transaction);
 
         let v2 = await arweave.transactions.verify(transaction);
         this.log(v2);
 
-        let v3 = await arweave.crypto.verify(owner, signatureData, response.signature);
-        console.log(v3);
+        //This fails now, but the above transaction verify works.
+        // let v3 = await arweave.crypto.verify(owner, signatureData, response.signature);
+        // console.log(v3);
 
       } finally {
         transport.close();
