@@ -42,9 +42,9 @@ __Z_INLINE void handleGetAddress(volatile uint32_t *flags, volatile uint32_t *tx
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
     MEMZERO(G_io_apdu_buffer,IO_APDU_BUFFER_SIZE);
 
-    action_addr_len = 0;
+    action_addrResponseLen = 0;
     zxerr_t err = app_fill_address();
-    if (err != zxerr_ok || action_addr_len == 0) {
+    if (err != zxerr_ok || action_addrResponseLen == 0) {
         *tx = 0;
         THROW(APDU_CODE_EXECUTION_ERROR);
     }
@@ -56,12 +56,12 @@ __Z_INLINE void handleGetAddress(volatile uint32_t *flags, volatile uint32_t *tx
         *flags |= IO_ASYNCH_REPLY;
         return;
     }else{
-        *tx = action_addr_len;
+        *tx = action_addrResponseLen;
         THROW(APDU_CODE_OK);
     }
 }
 
-__Z_INLINE void handleGetPubKeyPart(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleGetPubKeyPart(__Z_UNUSED volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     *tx = 0;
     if(rx < APDU_MIN_LENGTH){
         THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
@@ -84,7 +84,7 @@ __Z_INLINE void handleGetPubKeyPart(volatile uint32_t *flags, volatile uint32_t 
 }
 
 
-__Z_INLINE void handleGetSigPart(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleGetSigPart(__Z_UNUSED volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     *tx = 0;
     if(rx < APDU_MIN_LENGTH){
         THROW(APDU_CODE_COMMAND_NOT_ALLOWED);

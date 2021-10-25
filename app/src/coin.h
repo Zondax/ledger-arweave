@@ -1,5 +1,5 @@
 /*******************************************************************************
-*  (c) 2019 Zondax GmbH
+*  (c) 2018-2021 Zondax GmbH
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -21,6 +21,11 @@ extern "C" {
 
 #define CLA                             0x44
 
+#define RSA_MODULUS_LEN 512     // 4096 key
+#define RSA_PRIME_LEN   256     // 4096 key
+#define SHA384_DIGEST_LEN 48
+#define RSA_MODULUS_HALVE 256
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -39,10 +44,11 @@ typedef enum {
 #define COIN_AMOUNT_DECIMAL_PLACES          0                           // FIXME: Adjust this
 #define COIN_SUPPORTED_TX_VERSION           0
 
-#define MENU_MAIN_APP_LINE1 "Arweave"
-#define MENU_MAIN_APP_LINE2 "DO NOT USE"
-#define APPVERSION_LINE1 "Version"
-#define APPVERSION_LINE2 "v" APPVERSION
+#define MENU_MAIN_APP_LINE1                 "Arweave"
+#define MENU_MAIN_APP_LINE2                 "DO NOT USE"
+#define MENU_MAIN_APP_LINE2_SECRET          "???"
+#define APPVERSION_LINE1                    "Version"
+#define APPVERSION_LINE2                    "v" APPVERSION
 
 #ifdef __cplusplus
 }

@@ -17,7 +17,6 @@
 #include "os.h"
 #include "view.h"
 #include "coin.h"
-#include "crypto.h"
 #include "app_main.h"
 #include "crypto_store.h"
 
@@ -106,11 +105,39 @@ zxerr_t crypto_deriveMasterSeed() {
 
 zxerr_t crypto_derivePrime(uint8_t *prime, uint8_t index) {
     // Now derive p_seed and q_seed from the master seed
-    cx_sha3_t hash_sha3;
     uint8_t data_index[2] = {0, index};
-    cx_shake256_init(&hash_sha3, RSA_PRIME_LEN * 8);
-    cx_hash(&hash_sha3.header, 0, (void *) data_index, 2, NULL, 0);
-    cx_hash(&hash_sha3.header, CX_LAST, (void *) &N_crypto_store.masterSeed, 32, prime, RSA_PRIME_LEN);
+    uint8_t data[sizeof(data_index) + sizeof(N_crypto_store.masterSeed) + 1];
+
+    //initialization of data to be hashed
+    //Data: 0 || PRIME_INDEX (0 or 1) || MASTERSEED (32 bytes) || INDEX (0 - 255)
+    MEMCPY(data, data_index, 2);
+    MEMCPY(data + 2, &N_crypto_store.masterSeed, sizeof(N_crypto_store.masterSeed));
+
+    uint16_t index_location = 2 + sizeof(N_crypto_store.masterSeed);
+
+    //Number of times we need to hash: RSA_PRIME_LEN * 8 bits / 256 bits
+    uint16_t num_hashes = (RSA_PRIME_LEN*8)/256;
+    if(num_hashes > 255){
+        return zxerr_buffer_too_small;
+    }
+
+    //We can have a remainder of a few bytes if not divisible by 32 bytes
+    uint16_t remainder = (RSA_PRIME_LEN*8) % 256;
+
+    uint8_t hash_index = 0;
+    // Fill the random bytes of the prime
+    for(;hash_index < num_hashes; hash_index ++, prime += 32){
+        data[index_location] = hash_index;
+        cx_hash_sha256(data, sizeof(data), prime, CX_SHA256_SIZE);
+    }
+
+    // Fill the remainder bytes of the prime
+    if (remainder > 0){
+        uint8_t final_hash[CX_SHA256_SIZE];
+        data[index_location] = hash_index;
+        cx_hash_sha256(data, sizeof(data), final_hash, CX_SHA256_SIZE);\
+        MEMCPY(prime, final_hash, remainder / 8);
+    }
 
     zemu_log_stack("derivePrime::done");
     return zxerr_ok;

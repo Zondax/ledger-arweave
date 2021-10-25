@@ -76,10 +76,11 @@ cmake-build-fuzz/
 /app/bin/
 /app/debug/
 /app/obj/
+/build
 
 \deps/*
 !\deps/nanos-secure-sdk
-\deps/nano2-sdk
+!\deps/nanox-secure-sdk
 !\deps/ledger-zxlib
 
 node_modules/.yarn-integrity
@@ -88,3 +89,13 @@ node_modules/.yarn-integrity
 /fuzz/corpora
 /tests_zemu/snapshots-tmp/
 !/deps/sha512
+
+app/output/app.apdu
+
+app/output/app.sha256
+
+app/pkg/installer_s.sh
+
+app/glyphs/glyphs.c
+
+app/glyphs/glyphs.h

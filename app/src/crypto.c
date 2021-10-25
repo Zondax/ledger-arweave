@@ -20,6 +20,9 @@
 #include "b64url.h"
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
+#ifdef HAVE_RSA
+union cx_u G_cx;
+#endif // HAVE_RSA
 #include "crypto_store.h"
 
 void crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *out, unsigned int outLen) {
@@ -56,7 +59,7 @@ zxerr_t crypto_getsignature_part(uint8_t *buffer, uint16_t bufferLen, uint8_t in
     return zxerr_ok;
 }
 
-zxerr_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *message, uint16_t messageLen, uint16_t *sigSize) {
+zxerr_t crypto_sign(uint8_t *buffer, __Z_UNUSED uint16_t signatureMaxlen, __Z_UNUSED const uint8_t *message, __Z_UNUSED uint16_t messageLen, uint16_t *sigSize) {
     if (!crypto_store_is_initialized()) {
         return zxerr_invalid_crypto_settings;
     }

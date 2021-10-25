@@ -102,56 +102,56 @@ parser_error_t parser_readU16(parser_context_t *c, uint16_t *v) {
     CTX_CHECK_AVAIL(c, 2);
     *v = c->buffer[c->offset] * 256;
     *v += c->buffer[c->offset + 1];
-    CTX_CHECK_AND_ADVANCE(c, 2);
+    CTX_CHECK_AND_ADVANCE(c, 2)
     return parser_ok;
 }
 
 parser_error_t parser_readElement(parser_context_t *c, parser_element_t *v) {
-    CHECK_PARSER_ERR(parser_readU16(c, &v->len));
-    CTX_CHECK_AVAIL(c, v->len);
+    CHECK_PARSER_ERR(parser_readU16(c, &v->len))
+    CTX_CHECK_AVAIL(c, v->len)
     v->ptr = c->buffer + c->offset;
-    CTX_CHECK_AND_ADVANCE(c, v->len);
+    CTX_CHECK_AND_ADVANCE(c, v->len)
     return parser_ok;
 }
 
 parser_error_t parser_readTag(parser_context_t *c, parser_tag_t *v) {
-    CHECK_PARSER_ERR(parser_readElement(c, &v->key));
-    CHECK_PARSER_ERR(parser_readElement(c, &v->value));
+    CHECK_PARSER_ERR(parser_readElement(c, &v->key))
+    CHECK_PARSER_ERR(parser_readElement(c, &v->value))
     return parser_ok;
 }
 
 
 parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
-    CHECK_PARSER_ERR(parser_readElement(c, &v->format));
+    CHECK_PARSER_ERR(parser_readElement(c, &v->format))
     if (v->format.len != 1 || v->format.ptr[0] != '2') {
         return parser_unexpected_tx_version;
     }
 
-    CHECK_PARSER_ERR(parser_readElement(c, &v->owner));
+    CHECK_PARSER_ERR(parser_readElement(c, &v->owner))
     if (v->owner.len != 512) {
         return parser_unexpected_tx_version;
     }
-    CHECK_PARSER_ERR(parser_readElement(c, &v->target));
-    CHECK_PARSER_ERR(parser_readElement(c, &v->quantity));
-    CHECK_PARSER_ERR(parser_readElement(c, &v->reward));
-    CHECK_PARSER_ERR(parser_readElement(c, &v->last_tx));
+    CHECK_PARSER_ERR(parser_readElement(c, &v->target))
+    CHECK_PARSER_ERR(parser_readElement(c, &v->quantity))
+    CHECK_PARSER_ERR(parser_readElement(c, &v->reward))
+    CHECK_PARSER_ERR(parser_readElement(c, &v->last_tx))
 
     // tags
-    CHECK_PARSER_ERR(parser_readU16(c, &v->tags_count));
+    CHECK_PARSER_ERR(parser_readU16(c, &v->tags_count))
     if (v->tags_count > MAX_NUMBER_TAGS) {
         return parser_value_out_of_range;
     }
     for (int i = 0; i < v->tags_count; i++) {
-        CHECK_PARSER_ERR(parser_readTag(c, &v->tags[i]));
+        CHECK_PARSER_ERR(parser_readTag(c, &v->tags[i]))
     }
 
-    CHECK_PARSER_ERR(parser_readElement(c, &v->data_size));
-    CHECK_PARSER_ERR(parser_readElement(c, &v->data_root));
+    CHECK_PARSER_ERR(parser_readElement(c, &v->data_size))
+    CHECK_PARSER_ERR(parser_readElement(c, &v->data_root))
     return parser_ok;
 }
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
-parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
+parser_error_t _validateTx(__Z_UNUSED const parser_context_t *c, const parser_tx_t *v) {
     zxerr_t zxerr;
     uint8_t rsakey[RSA_MODULUS_HALVE];
     for(int i = 0; i < 2; i ++) {
@@ -167,12 +167,12 @@ parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
     return parser_ok;
 }
 #else
-parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
+parser_error_t _validateTx(__Z_UNUSED const parser_context_t *c, const parser_tx_t *v) {
     //do nothing
     return parser_ok;
 }
 #endif
 
-uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
+uint8_t _getNumItems(__Z_UNUSED const parser_context_t *c, const parser_tx_t *v) {
     return CONST_NUM_UI_ITEMS + v->tags_count;
 }

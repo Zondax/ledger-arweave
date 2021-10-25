@@ -24,6 +24,7 @@
 #include <app_mode.h>
 #include "parser.h"
 #include "utils/common.h"
+#include "zxformat.h"
 
 using ::testing::TestWithParam;
 

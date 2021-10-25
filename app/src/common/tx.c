@@ -48,7 +48,7 @@ void tx_initialize() {
     buffering_init(
             ram_buffer,
             sizeof(ram_buffer),
-            N_appdata.buffer,
+            (uint8_t *) N_appdata.buffer,
             sizeof(N_appdata.buffer)
     );
 }
@@ -71,9 +71,9 @@ uint8_t *tx_get_buffer() {
 
 const char *tx_parse() {
     uint8_t err = parser_parse(
-        &ctx_parsed_tx,
-        tx_get_buffer(),
-        tx_get_buffer_length());
+            &ctx_parsed_tx,
+            tx_get_buffer(),
+            tx_get_buffer_length());
 
     if (err != parser_ok) {
         return parser_getErrorDescription(err);
