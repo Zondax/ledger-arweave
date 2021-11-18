@@ -7,6 +7,7 @@ export interface ResponseBase {
 
 export interface ResponseAddress extends ResponseBase {
   address: string;
+  owner: string;
 }
 
 export interface ResponseVersion extends ResponseBase {
