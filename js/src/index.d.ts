@@ -37,8 +37,8 @@ export interface ResponseSign extends ResponseBase {
   signature: Buffer;
 }
 
-export interface ArweaveApp {
-  new(transport: Transport): ArweaveApp;
+export default class ArweaveApp {
+  constructor(transport: Transport): ArweaveApp;
 
   getVersion(): Promise<ResponseVersion>;
   getAppInfo(): Promise<ResponseAppInfo>;
