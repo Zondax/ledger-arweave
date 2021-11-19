@@ -39,11 +39,13 @@ export interface ResponseSign extends ResponseBase {
   signature: Buffer;
 }
 
-export enum ERROR_CODE {
+enum ErrorCode {
   NoError
 }
 
 export default class ArweaveApp {
+  static ErrorCode = ErrorCode;
+
   constructor(transport: Transport);
 
   getVersion(): Promise<ResponseVersion>;
