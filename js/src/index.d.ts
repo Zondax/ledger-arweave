@@ -1,4 +1,5 @@
 import Transport from "@ledgerhq/hw-transport";
+import Transaction from "arweave/web/lib/transaction";
 
 export interface ResponseBase {
   errorMessage: string;
@@ -7,6 +8,7 @@ export interface ResponseBase {
 
 export interface ResponseAddress extends ResponseBase {
   address: string;
+  owner: string;
 }
 
 export interface ResponseVersion extends ResponseBase {
@@ -37,8 +39,14 @@ export interface ResponseSign extends ResponseBase {
   signature: Buffer;
 }
 
-export interface ArweaveApp {
-  new(transport: Transport): ArweaveApp;
+enum ErrorCode {
+  NoError
+}
+
+export default class ArweaveApp {
+  static ErrorCode = ErrorCode;
+
+  constructor(transport: Transport);
 
   getVersion(): Promise<ResponseVersion>;
   getAppInfo(): Promise<ResponseAppInfo>;
@@ -46,5 +54,5 @@ export interface ArweaveApp {
   showAddress(): Promise<ResponseAddress>;
 
   digest(message: Buffer): Promise<ResponseDigest>;
-  sign(message: Buffer): Promise<ResponseSign>;
+  sign(message: Transaction | Buffer): Promise<ResponseSign>;
 }
