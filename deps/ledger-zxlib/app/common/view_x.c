@@ -25,7 +25,6 @@
 #include "zxmacros.h"
 #include "view_templates.h"
 #include "tx.h"
-#include "view_internal.h"
 
 #ifdef APP_SECRET_MODE_ENABLED
 #include "secret.h"
@@ -187,6 +186,14 @@ void splitValueField() {
     }
 }
 
+void splitValueAddress() {
+    splitValueField();
+}
+
+max_char_display get_max_char_per_line() {
+    return MAX_CHARS_PER_VALUE1_LINE;
+}
+
 void h_expert_toggle() {
     app_mode_set_expert(!app_mode_expert());
     ux_flow_init(0, ux_idle_flow, &ux_idle_flow_2_step);
@@ -239,7 +246,6 @@ void view_idle_show_impl(uint8_t item_idx, char *statusString) {
         snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "%s", statusString);
     }
 
-    h_status_update();
     if(G_ux.stack_count == 0) {
         ux_stack_push();
     }
