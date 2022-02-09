@@ -30,6 +30,8 @@
 
 #if defined(TARGET_NANOS)
 
+void h_initialize();
+
 #define BAGL_WIDTH 128
 #define BAGL_HEIGHT 32
 #define BAGL_WIDTH_MARGIN 10
