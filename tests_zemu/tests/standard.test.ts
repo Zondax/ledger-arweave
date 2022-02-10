@@ -20,17 +20,17 @@ import {APP_SEED, models} from './common'
 
 const Arweave = require('arweave');
 const Resolve = require("path").resolve;
-const APP_PATH = Resolve("../app/bin/app.elf");
 
 const defaultOptions = {
   ...DEFAULT_START_OPTIONS,
-  startDelay: 10000,
+  startDelay: 15000,
   logging: true,
   custom: `-s "${APP_SEED}"`,
   X11: false,
+  startTimeout: 300 * 1000
 }
 
-jest.setTimeout(60000)
+jest.setTimeout(1200 * 1000)
 
 beforeAll(async () => {
   await Zemu.checkAndPullImage()
@@ -50,7 +50,7 @@ describe('Basic checks', function () {
     const sim = new Zemu(m.path)
     try {
       await sim.start({...defaultOptions, model: m.name})
-      await sim.navigateAndCompareSnapshots('.', `${m.prefix.toLowerCase()}-mainmenu`, [1, 0, 0, 5, -5])
+      await sim.navigateAndCompareSnapshots('.', `${m.prefix.toLowerCase()}_main_menu`, [1, 0, 0, 5, -5])
     } finally {
       await sim.close()
     }
@@ -60,13 +60,13 @@ describe('Basic checks', function () {
     const sim = new Zemu(m.path)
     try {
       await sim.start({...defaultOptions, model: m.name})
-      const app = ArweaveApp(sim.getTransport())
+      const app = new ArweaveApp(sim.getTransport())
       const resp = await app.getVersion()
 
       console.log(resp)
 
-      expect(resp.return_code).toEqual(0x9000)
-      expect(resp.error_message).toEqual('No errors')
+      expect(resp.returnCode).toEqual(0x9000)
+      expect(resp.errorMessage).toEqual('No errors')
       expect(resp).toHaveProperty('testMode')
       expect(resp).toHaveProperty('major')
       expect(resp).toHaveProperty('minor')
@@ -99,7 +99,7 @@ describe('Basic checks', function () {
       qi: '0Dg_6VwT_tKPTu79TzVmWXFE4dU_EtBsrjuP2KRC97L0LriS_luaO5IdwpeDS0y8N-SfI_Plc0I8yHSQVt-TW_AafhDjZ5Y_1PWpKpInb7a_WfFXVZAFVPORMNzqDNuR5QB_VJYqfpxLGTrrud9AexZQIAqfl-ANpw9q0_ZQ40ZEdNchT6nnTGpexGNBGSQQI8RyokqfLoFQ7JeLsTpffqYjW73TRFE-Bi4vWKN4n9Fr6gH7rvx1G3oydrVGGkttc6v8s8ZtA1x5FSwReIffPJToz6hye-7M17RI6mC6VmcI6fJz_5Tmdkgz6Nael12e-82cllMpmm45gOyFNG9l5g'
     }
 
-    let transaction = await arweave.createTransaction({
+    const transaction = await arweave.createTransaction({
       target: '1seRanklLU_1VTGkEk7P0xAwMJfA7owA1JHW5KyZKlY',
       quantity: arweave.ar.arToWinston('10.5'),
       reward: 12345,
@@ -121,25 +121,25 @@ describe('Basic checks', function () {
     };
   }
 
-  it.skip('fake tx', async function () {
-    let exampleData = await getFakeTx();
+  test.each(models)('fake tx', async function (m) {
+    const exampleData = await getFakeTx();
     console.log(exampleData)
 
-    let signatureData = await exampleData.transaction.getSignatureData()
+    const signatureData = await exampleData.transaction.getSignatureData()
     console.log(`Digest to sign: ${signatureData.length}  ` + Buffer.from(signatureData).toString("hex"));
 
     await exampleData.arweave.transactions.sign(exampleData.transaction, exampleData.jwtKey);
     console.log(exampleData.transaction);
 
-    const encodedTx = Buffer.from(ArweaveApp.encodeTx(exampleData.transaction))
+    //const encodedTx = Buffer.from(ArweaveApp.encodeTx(exampleData.transaction))
 
-    console.log(encodedTx.toString("hex"))
+    //console.log(encodedTx.toString("hex"))
   });
 
-  it.skip('get address', async function () {
-    const sim = new Zemu(APP_PATH);
+  test.each(models)('get address', async function (m) {
+    const sim = new Zemu(m.path);
     try {
-      await sim.start(simOptions);
+      await sim.start({...defaultOptions, model: m.name});
       const app = new ArweaveApp(sim.getTransport());
 
       const resp = await app.getAddress();
@@ -156,10 +156,10 @@ describe('Basic checks', function () {
     }
   });
 
-  it.skip('show address', async function () {
-    const sim = new Zemu(APP_PATH);
+  test.each(models)('show address', async function (m) {
+    const sim = new Zemu(m.path);
     try {
-      await sim.start(simOptions);
+      await sim.start({...defaultOptions, model: m.name});
       const app = new ArweaveApp(sim.getTransport());
 
       const respRequest = app.showAddress();
@@ -167,7 +167,7 @@ describe('Basic checks', function () {
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
       // Now navigate the address
-      await sim.compareSnapshotsAndAccept(".", "show_address", 3);
+      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_show_addres`, 3);
 
       const resp = await respRequest;
       console.log(resp);
@@ -182,10 +182,10 @@ describe('Basic checks', function () {
     }
   });
 
-  it.skip('show address - expert', async function () {
-    const sim = new Zemu(APP_PATH);
+  test.each(models)('show address - expert', async function (m) {
+    const sim = new Zemu(m.path);
     try {
-      await sim.start(simOptions);
+      await sim.start({...defaultOptions, model: m.name});
       const app = new ArweaveApp(sim.getTransport());
 
       // Enable expert mode
@@ -198,7 +198,7 @@ describe('Basic checks', function () {
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
       // Now navigate the address
-      await sim.compareSnapshotsAndAccept(".", "show_address_expert", 3);
+      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_show_address_expert`, 3);
 
       const resp = await respRequest;
       console.log(resp);
@@ -213,13 +213,13 @@ describe('Basic checks', function () {
     }
   });
 
-  it.skip('sign - transfer', async function () {
-    const sim = new Zemu(APP_PATH);
+  test.each(models)('sign - transfer', async function (m) {
+    const sim = new Zemu(m.path);
     try {
-      await sim.start(simOptions);
+      await sim.start({...defaultOptions, model: m.name});
       const app = new ArweaveApp(sim.getTransport());
 
-      let exampleData = await getFakeTx();
+      const exampleData = await getFakeTx();
       console.log(exampleData)
 
       // do not wait here..
@@ -227,9 +227,9 @@ describe('Basic checks', function () {
       // Wait until we are not in the main menu
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-      await sim.compareSnapshotsAndAccept(".", "sign_transfer", 16);
+      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_sign_transfer`, 16);
 
-      let resp = await signatureRequest;
+      const resp = await signatureRequest;
       console.log(resp);
 
       expect(resp.returnCode).toEqual(0x9000);

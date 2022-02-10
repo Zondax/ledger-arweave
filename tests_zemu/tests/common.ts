@@ -9,7 +9,7 @@ const APP_PATH_X = Resolve('../app/output/app_x.elf')
 
 export const models: DeviceModel[] = [
   { name: 'nanos', prefix: 'S', path: APP_PATH_S },
-  { name: 'nanox', prefix: 'X', path: APP_PATH_X },
+ // { name: 'nanox', prefix: 'X', path: APP_PATH_X },
 ]
 
 // //    "name": "Balances_Transfer",
