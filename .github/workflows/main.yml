@@ -76,7 +76,7 @@ jobs:
         run: |
           make clean_output
           make clean_build
-          make buildS
+          APP_TESTING=1 make buildS
       - name: Build/Install build js deps
         run: |
           export PATH=~/.cargo/bin:$PATH

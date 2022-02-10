@@ -23,11 +23,12 @@ const Resolve = require("path").resolve;
 
 const defaultOptions = {
   ...DEFAULT_START_OPTIONS,
-  startDelay: 15000,
+  startDelay: 5000,
   logging: true,
   custom: `-s "${APP_SEED}"`,
   X11: false,
-  startTimeout: 300 * 1000
+  startTimeout: 300 * 1000,
+  startText: "Arweave",
 }
 
 jest.setTimeout(1200 * 1000)
@@ -167,7 +168,7 @@ describe('Basic checks', function () {
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
       // Now navigate the address
-      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_show_addres`, 3);
+      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_show_address`, 2);
 
       const resp = await respRequest;
       console.log(resp);
@@ -198,7 +199,7 @@ describe('Basic checks', function () {
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
       // Now navigate the address
-      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_show_address_expert`, 3);
+      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_show_address_expert`, 2);
 
       const resp = await respRequest;
       console.log(resp);
