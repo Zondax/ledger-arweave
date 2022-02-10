@@ -45,9 +45,7 @@ jobs:
         shell: bash -l {0}
         run: |
           source $HOME/.cargo/env
-          make clean_output
-          make clean_build
-          make buildS
+          make
 
   test_zemu:
     runs-on: ubuntu-latest
