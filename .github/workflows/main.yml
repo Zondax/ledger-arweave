@@ -89,7 +89,7 @@ jobs:
           make zemu_test
 
   build_package:
-    needs: [ configure, build, build_ledger ]
+    needs: [ configure, build, build_ledger_s ]
     if: ${{ github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     container:
