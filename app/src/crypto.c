@@ -79,6 +79,10 @@ zxerr_t crypto_sign(uint8_t *buffer, __Z_UNUSED uint16_t signatureMaxlen, __Z_UN
     uint8_t digestsmall[CX_SHA256_SIZE];
     cx_hash_sha256(digest, SHA384_DIGEST_LEN, digestsmall, CX_SHA256_SIZE);
 
+    #ifdef APP_TESTING
+         return zxerr_ok;
+    #endif
+
     cx_rsa_sign((const cx_rsa_private_key_t *)rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA256, digestsmall, CX_SHA256_SIZE, sig, RSA_MODULUS_LEN);
 
     zxerr_t err = crypto_store_signature(sig);

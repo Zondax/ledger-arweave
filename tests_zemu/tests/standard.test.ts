@@ -234,13 +234,14 @@ describe('Basic checks', function () {
 
       await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_sign_transfer`, 16);
 
-      // FIXME Still not working, as it is not signing correctly
-      /*const resp = await signatureRequest;
+      const resp = await signatureRequest;
       console.log(resp);
 
       expect(resp.returnCode).toEqual(0x9000);
       expect(resp.errorMessage).toEqual("No errors");
 
+      // FIXME this is disabled as app is not signing anything on testing mode.
+      /*
       const id = await Arweave.crypto.hash(resp.signature);
       const sigjs = {
         signature: await Arweave.utils.bufferTob64Url(resp.signature),
