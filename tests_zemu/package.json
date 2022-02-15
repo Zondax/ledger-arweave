@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@zondax/ledger-arweave": "link:../js",
-    "@zondax/zemu": "^0.17.2"
+    "@zondax/zemu": "^0.24.0"
   },
   "devDependencies": {
     "@types/jest": "^27.0.2",
