@@ -81,11 +81,12 @@ endif
 APP_LOAD_PARAMS = --appFlags 0x200 --delete $(COMMON_LOAD_PARAMS) --path $(APPPATH) --path "44'/1'" --tlvraw 9F:01
 DEFINES += HAVE_PENDING_REVIEW_SCREEN
 
-ifeq ($(TARGET_NAME),TARGET_NANOS)
 INCLUDES_PATH += $(BOLOS_SDK)/lib_cxng/src
 APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_rsa.c
 APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_pkcs1.c
 APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_utils.c
+
+ifeq ($(TARGET_NAME),TARGET_NANOS)
 
 APP_STACK_SIZE:=3172
 ICONNAME:=$(CURDIR)/nanos_icon.gif
