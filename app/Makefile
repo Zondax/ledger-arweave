@@ -87,7 +87,7 @@ APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_pkcs1.c
 APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_utils.c
 
 ifeq ($(TARGET_NAME),TARGET_NANOS)
-APP_STACK_SIZE:=3172
+APP_STACK_SIZE:=2896
 ICONNAME:=$(CURDIR)/nanos_icon.gif
 OUTPUT_ELF ?= $(CURDIR)/output/app_s.elf
 OUTPUT_INSTALLER := $(CURDIR)/pkg/installer_s.sh
