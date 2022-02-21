@@ -89,7 +89,7 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v2
         with:
-          node-version: '14.17.0'
+          node-version: '16.13.0'
       - name: Install yarn
         run: |
           npm install -g yarn
@@ -97,7 +97,7 @@ jobs:
         run: |
           make clean_output
           make clean_build
-          APP_TESTING=1 make buildS
+          APP_TESTING=1 make
       - name: Build/Install build js deps
         run: |
           export PATH=~/.cargo/bin:$PATH
