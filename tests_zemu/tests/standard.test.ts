@@ -19,7 +19,6 @@ import ArweaveApp from "@zondax/ledger-arweave";
 import {APP_SEED, models} from './common'
 
 const Arweave = require('arweave');
-const Resolve = require("path").resolve;
 
 const defaultOptions = {
   ...DEFAULT_START_OPTIONS,
