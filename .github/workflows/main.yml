@@ -47,6 +47,27 @@ jobs:
           source $HOME/.cargo/env
           make
 
+  build_ledger_x:
+    needs: configure
+    runs-on: ubuntu-latest
+    container:
+      image: zondax/builder-bolos:latest
+      options: --user ${{ needs.configure.outputs.uid_gid }}
+    env:
+      BOLOS_SDK: ${{ github.workspace }}/deps/nanox-secure-sdk
+      BOLOS_ENV: /opt/bolos
+      HOME: /home/zondax_circle
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Build Standard app on Nano X
+        shell: bash -l {0}
+        run: |
+          source $HOME/.cargo/env
+          make
+
   test_zemu:
     runs-on: ubuntu-latest
     steps:
