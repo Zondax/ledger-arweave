@@ -16,7 +16,7 @@
 
 #include <stdio.h>
 #include <zxmacros.h>
-#include "zxformat.h"
+#include <zxformat.h>
 #include "parser_impl.h"
 #include "parser.h"
 #include "parser_txdef.h"

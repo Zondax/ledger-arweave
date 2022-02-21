@@ -24,9 +24,9 @@ extern "C" {
 #include "coin.h"
 #include <stdbool.h>
 #include <sigutils.h>
-#include <zxerror.h>
+#include "zxerror.h"
 
-#if defined(TARGET_NANOS)
+#if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 
 #ifdef HAVE_RSA
 #include "cx_ram.h"

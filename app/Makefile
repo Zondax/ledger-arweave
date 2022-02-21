@@ -87,7 +87,6 @@ APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_pkcs1.c
 APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_utils.c
 
 ifeq ($(TARGET_NAME),TARGET_NANOS)
-
 APP_STACK_SIZE:=3172
 ICONNAME:=$(CURDIR)/nanos_icon.gif
 OUTPUT_ELF ?= $(CURDIR)/output/app_s.elf
@@ -96,7 +95,7 @@ DEFINES += CBOR_PARSER_MAX_RECURSIONS=4
 endif
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
-SCRIPT_LD:=$(CURDIR)/script_x.ld
+APP_STACK_SIZE:=4096
 ICONNAME:=$(CURDIR)/nanox_icon.gif
 OUTPUT_ELF ?= $(CURDIR)/output/app_x.elf
 OUTPUT_INSTALLER:= $(CURDIR)/pkg/installer_x.sh
@@ -128,6 +127,7 @@ DEFINES       += USB_SEGMENT_SIZE=64
 DEFINES       += HAVE_BOLOS_APP_STACK_CANARY
 
 DEFINES       += HAVE_WEBUSB WEBUSB_URL_SIZE_B=0 WEBUSB_URL=""
+DEFINES		  += HAVE_HASH HAVE_BLAKE2 HAVE_SHA256 HAVE_SHA512
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
 DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=300
@@ -141,6 +141,7 @@ DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
 
 DEFINES       += HAVE_UX_FLOW
 
+DEFINES       += HAVE_BLE
 DEFINES       += HAVE_BLE_APDU BLE_COMMAND_TIMEOUT_MS=2000
 
 SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
@@ -184,9 +185,7 @@ AFLAGS +=
 
 LD       := $(GCCPATH)arm-none-eabi-gcc
 LDFLAGS  += -O3 -Os
-LDFLAGS  += -z muldefs
 LDLIBS   += -lm -lgcc -lc
-#LDLIBS   += -Lrust/target/thumbv6m-none-eabi/release -lrslib
 
 ##########################
 GLYPH_SRC_DIR = glyphs

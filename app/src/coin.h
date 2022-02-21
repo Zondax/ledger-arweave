@@ -21,14 +21,6 @@ extern "C" {
 
 #define CLA                             0x44
 
-#define RSA_MODULUS_LEN 512     // 4096 key
-#define RSA_PRIME_LEN   256     // 4096 key
-#define SHA384_DIGEST_LEN 48
-#define RSA_MODULUS_HALVE 256
-
-#include <stdint.h>
-#include <stddef.h>
-
 #define HDPATH_LEN_DEFAULT   5
 
 #define HDPATH_0_DEFAULT     (0x80000000u | 0x2cu)
@@ -36,6 +28,11 @@ extern "C" {
 #define HDPATH_2_DEFAULT     (0x80000000u | 0u)
 #define HDPATH_3_DEFAULT     (0u)
 #define HDPATH_4_DEFAULT     (0u)
+
+#define RSA_MODULUS_LEN 512     // 4096 key
+#define RSA_PRIME_LEN   256     // 4096 key
+#define SHA384_DIGEST_LEN 48
+#define RSA_MODULUS_HALVE 256
 
 typedef enum {
     kind_unknown
@@ -49,6 +46,8 @@ typedef enum {
 #define MENU_MAIN_APP_LINE2_SECRET          "???"
 #define APPVERSION_LINE1                    "Version"
 #define APPVERSION_LINE2                    "v" APPVERSION
+
+#define COIN_SECRET_REQUIRED_CLICKS         0
 
 #ifdef __cplusplus
 }

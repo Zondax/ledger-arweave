@@ -33,66 +33,85 @@
 uint8_t ram_buffer[RAM_BUFFER_SIZE];
 
 // Flash
-typedef struct {
+typedef struct
+{
     uint8_t buffer[FLASH_BUFFER_SIZE];
 } storage_t;
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
-storage_t NV_CONST N_appdata_impl __attribute__ ((aligned(64)));
+storage_t NV_CONST N_appdata_impl __attribute__((aligned(64)));
 #define N_appdata (*(NV_VOLATILE storage_t *)PIC(&N_appdata_impl))
 #endif
 
 parser_context_t ctx_parsed_tx;
 
-void tx_initialize() {
+void tx_initialize()
+{
     buffering_init(
-            ram_buffer,
-            sizeof(ram_buffer),
-            (uint8_t *) N_appdata.buffer,
-            sizeof(N_appdata.buffer)
-    );
+        ram_buffer,
+        sizeof(ram_buffer),
+        (uint8_t *)N_appdata.buffer,
+        sizeof(N_appdata.buffer));
 }
 
-void tx_reset() {
+void tx_reset()
+{
     buffering_reset();
 }
 
-uint32_t tx_append(unsigned char *buffer, uint32_t length) {
+uint32_t tx_append(unsigned char *buffer, uint32_t length)
+{
     return buffering_append(buffer, length);
 }
 
-uint32_t tx_get_buffer_length() {
+uint32_t tx_get_buffer_length()
+{
     return buffering_get_buffer()->pos;
 }
 
-uint8_t *tx_get_buffer() {
+uint8_t *tx_get_buffer()
+{
     return buffering_get_buffer()->data;
 }
 
-const char *tx_parse() {
-    uint8_t err = parser_parse(
-            &ctx_parsed_tx,
-            tx_get_buffer(),
-            tx_get_buffer_length());
+static parser_tx_t tx_obj;
 
-    if (err != parser_ok) {
+const char *tx_parse()
+{
+    MEMZERO(&tx_obj, sizeof(tx_obj));
+
+    uint8_t err = parser_parse(&ctx_parsed_tx,
+                               tx_get_buffer(),
+                               tx_get_buffer_length());
+    zemu_log_stack("parse|parsed");
+
+    if (err != parser_ok)
+    {
         return parser_getErrorDescription(err);
     }
 
     err = parser_validate(&ctx_parsed_tx);
     CHECK_APP_CANARY()
 
-    if (err != parser_ok) {
+    if (err != parser_ok)
+    {
         return parser_getErrorDescription(err);
     }
 
     return NULL;
 }
 
-zxerr_t tx_getNumItems(uint8_t *num_items) {
+void tx_parse_reset()
+{
+    MEMZERO(&tx_obj, sizeof(tx_obj));
+}
+
+zxerr_t tx_getNumItems(uint8_t *num_items)
+{
     parser_error_t err = parser_getNumItems(&ctx_parsed_tx, num_items);
 
-    if (err != parser_ok) {
+    if (err != parser_ok)
+    {
         return zxerr_no_data;
     }
 
@@ -102,12 +121,14 @@ zxerr_t tx_getNumItems(uint8_t *num_items) {
 zxerr_t tx_getItem(int8_t displayIdx,
                    char *outKey, uint16_t outKeyLen,
                    char *outVal, uint16_t outValLen,
-                   uint8_t pageIdx, uint8_t *pageCount) {
+                   uint8_t pageIdx, uint8_t *pageCount)
+{
     uint8_t numItems = 0;
 
     CHECK_ZXERR(tx_getNumItems(&numItems))
 
-    if (displayIdx < 0 || displayIdx > numItems) {
+    if (displayIdx < 0 || displayIdx > numItems)
+    {
         return zxerr_no_data;
     }
 
