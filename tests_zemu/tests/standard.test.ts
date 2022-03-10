@@ -171,7 +171,7 @@ describe('Basic checks', function () {
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
       // Now navigate the address
-      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_show_address`, 2);
+      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_show_address`,  m.name == "nanos" ? 2 : 3);
 
       const resp = await respRequest;
       console.log(resp);
@@ -202,7 +202,7 @@ describe('Basic checks', function () {
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
       // Now navigate the address
-      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_show_address_expert`, 2);
+      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_show_address_expert`, m.name == "nanos" ? 2 : 3);
 
       const resp = await respRequest;
       console.log(resp);
