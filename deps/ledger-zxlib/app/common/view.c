@@ -61,8 +61,7 @@ void h_error_accept(__Z_UNUSED unsigned int _) {
     app_reply_error();
 }
 
-void h_initialize(unsigned int _) {
-    UNUSED(_);
+void h_initialize(__Z_UNUSED unsigned int _) {
     view_idle_show(0, NULL);
     UX_WAIT();
 }
