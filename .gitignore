@@ -91,11 +91,9 @@ node_modules/.yarn-integrity
 !/deps/sha512
 
 app/output/app.apdu
-
 app/output/app.sha256
-
 app/pkg/installer_s.sh
-
 app/glyphs/glyphs.c
-
 app/glyphs/glyphs.h
+.vscode
+tests_zemu/yarn.lock

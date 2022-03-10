@@ -16,7 +16,10 @@
 
 #include "crypto.h"
 #include "coin.h"
+#include "zxmacros.h"
+#include "apdu_codes.h"
 #include "parser.h"
+#include "parser_common.h"
 #include "b64url.h"
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)

@@ -19,6 +19,8 @@
 #include "coin.h"
 #include "app_main.h"
 #include "crypto_store.h"
+#include "zxmacros_ledger.h"
+#include "os_io_seproxyhal.h"
 
 typedef struct {
     uint8_t masterSeed[32];
@@ -48,7 +50,7 @@ uint8_t signature_set;
 //////////////////////////////////////////////////////////////
 
 zxerr_t crypto_store_signature(uint8_t *sig){
-    MEMCPY_NV(&N_crypto_sig.sig, sig, RSA_MODULUS_LEN);
+    MEMCPY_NV((void *)&N_crypto_sig.sig, sig, RSA_MODULUS_LEN);
     signature_set = 1;
     return zxerr_ok;
 }
@@ -66,7 +68,7 @@ zxerr_t crypto_signature_part(uint8_t *sig, uint8_t index){
     if (index == 1){
         uint8_t dummy[RSA_MODULUS_LEN];
         MEMZERO(dummy, RSA_MODULUS_LEN);
-        MEMCPY_NV(&N_crypto_sig.sig, dummy, RSA_MODULUS_LEN);
+        MEMCPY_NV((void *)&N_crypto_sig.sig, dummy, RSA_MODULUS_LEN);
         signature_set = 0;
     }
     return zxerr_ok;
@@ -99,7 +101,7 @@ zxerr_t crypto_deriveMasterSeed() {
                                         masterSeed,
                                         NULL, NULL, 0);
 
-    MEMCPY_NV(&N_crypto_store.masterSeed, masterSeed, 32);
+    MEMCPY_NV((void*) &N_crypto_store.masterSeed, masterSeed, 32);
     return zxerr_ok;
 }
 
@@ -111,7 +113,7 @@ zxerr_t crypto_derivePrime(uint8_t *prime, uint8_t index) {
     //initialization of data to be hashed
     //Data: 0 || PRIME_INDEX (0 or 1) || MASTERSEED (32 bytes) || INDEX (0 - 255)
     MEMCPY(data, data_index, 2);
-    MEMCPY(data + 2, &N_crypto_store.masterSeed, sizeof(N_crypto_store.masterSeed));
+    MEMCPY(data + 2, (void*) &N_crypto_store.masterSeed, sizeof(N_crypto_store.masterSeed));
 
     uint16_t index_location = 2 + sizeof(N_crypto_store.masterSeed);
 
@@ -176,7 +178,7 @@ zxerr_t crypto_init_primes() {
     view_message_show("Arweave", "Finding Q");
     UX_WAIT_DISPLAYED();
     cx_math_next_prime(pq + RSA_PRIME_LEN, RSA_PRIME_LEN);
-    MEMCPY_NV(&N_crypto_store.pq, pq, RSA_PRIME_LEN * 2);
+    MEMCPY_NV((void *) &N_crypto_store.pq, pq, RSA_PRIME_LEN * 2);
 
     return zxerr_ok;
 }
@@ -198,9 +200,9 @@ zxerr_t crypto_init_keys() {
 
     view_message_show("Arweave", "store keys");
     UX_WAIT_DISPLAYED();
-    SET_NV(&N_crypto_store.initialized, uint8_t, true)
-    MEMCPY_NV(&N_crypto_store.rsa_pub, &rsa_pub, sizeof(rsa_pub));
-    MEMCPY_NV(&N_crypto_store.rsa_priv, &rsa_priv, sizeof(rsa_priv));
+    SET_NV((void *)&N_crypto_store.initialized, uint8_t, true)
+    MEMCPY_NV((void *)&N_crypto_store.rsa_pub, &rsa_pub, sizeof(rsa_pub));
+    MEMCPY_NV((void *)&N_crypto_store.rsa_priv, &rsa_priv, sizeof(rsa_priv));
 
     return zxerr_ok;
 }
@@ -244,13 +246,13 @@ cx_rsa_4096_public_key_t *crypto_store_get_pubkey() {
     if (!crypto_store_is_initialized()) {
         return NULL;
     }
-    return &N_crypto_store.rsa_pub;
+    return (cx_rsa_4096_public_key_t *) &N_crypto_store.rsa_pub;
 }
 
 cx_rsa_4096_private_key_t *crypto_store_get_privkey() {
     if (!crypto_store_is_initialized()) {
         return NULL;
     }
-    return &N_crypto_store.rsa_priv;
+    return (cx_rsa_4096_private_key_t *)&N_crypto_store.rsa_priv;
 }
 

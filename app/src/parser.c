@@ -16,7 +16,7 @@
 
 #include <stdio.h>
 #include <zxmacros.h>
-#include "zxformat.h"
+#include <zxformat.h>
 #include "parser_impl.h"
 #include "parser.h"
 #include "parser_txdef.h"
@@ -25,7 +25,7 @@
 
 #if defined(TARGET_NANOX)
 // For some reason NanoX requires this function
-void __assert_fail(const char * assertion, const char * file, unsigned int line, const char * function){
+void __assert_fail(__Z_UNUSED const char * assertion, __Z_UNUSED const char * file, __Z_UNUSED unsigned int line, __Z_UNUSED const char * function){
     while(1) {};
 }
 #endif
