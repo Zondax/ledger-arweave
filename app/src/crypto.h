@@ -30,7 +30,6 @@ extern "C" {
 
 #ifdef HAVE_RSA
 #include "cx_ram.h"
-extern union cx_u G_cx;
 #endif // HAVE_RSA
 
 #endif
