@@ -27,7 +27,7 @@ extern "C" {
 #include "lcx_rsa.h"
 #endif
 
-#if defined(TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 #include "cx.h"
 #endif
 
