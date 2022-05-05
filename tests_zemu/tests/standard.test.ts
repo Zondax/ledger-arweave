@@ -52,7 +52,7 @@ describe('Basic checks', function () {
     const sim = new Zemu(m.path)
     try {
       await sim.start({...defaultOptions, model: m.name})
-      await sim.navigateAndCompareSnapshots('.', `${m.prefix.toLowerCase()}_main_menu`, [1, 0, 0, 4, -5])
+      await sim.navigateAndCompareSnapshots('.', `${m.prefix.toLowerCase()}-mainmenu`, [1, 0, 0, 4, -5])
     } finally {
       await sim.close()
     }
@@ -171,7 +171,7 @@ describe('Basic checks', function () {
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
       // Now navigate the address
-      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_show_address`,  m.name == "nanos" ? 2 : 3);
+      await sim.compareSnapshotsAndApprove(".", `${m.prefix.toLowerCase()}-show_address`);
 
       const resp = await respRequest;
       console.log(resp);
@@ -202,7 +202,7 @@ describe('Basic checks', function () {
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
       // Now navigate the address
-      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_show_address_expert`, m.name == "nanos" ? 2 : 3);
+      await sim.compareSnapshotsAndApprove(".", `${m.prefix.toLowerCase()}-show_address_expert`);
 
       const resp = await respRequest;
       console.log(resp);
@@ -231,7 +231,7 @@ describe('Basic checks', function () {
       // Wait until we are not in the main menu
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-      await sim.compareSnapshotsAndAccept(".", `${m.prefix.toLowerCase()}_sign_transfer`, m.name == "nanos" ? 16 : 14);
+      await sim.compareSnapshotsAndApprove(".", `${m.prefix.toLowerCase()}-sign_transfer`);
 
       const resp = await signatureRequest;
       console.log(resp);

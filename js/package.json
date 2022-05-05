@@ -21,7 +21,7 @@
   "homepage": "https://github.com/zondax/ledger-arweave",
   "dependencies": {
     "@babel/runtime": "^7.15.4",
-    "@ledgerhq/hw-transport": "^6.7.0",
+    "@ledgerhq/hw-transport": "^6.27.1",
     "arweave": "^1.10.17"
   },
   "devDependencies": {
