@@ -152,21 +152,33 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                 }
 
                 case INS_GET_ADDRESS: {
+                    if( os_global_pin_is_validated() != BOLOS_UX_OK ) {
+                        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
+                    }
                     handleGetAddress(flags, tx, rx);
                     break;
                 }
 
                 case INS_SIGN: {
+                    if( os_global_pin_is_validated() != BOLOS_UX_OK ) {
+                        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
+                    }
                     handleSign(flags, tx, rx);
                     break;
                 }
 
                 case INS_GET_SIG: {
+                    if( os_global_pin_is_validated() != BOLOS_UX_OK ) {
+                        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
+                    }
                     handleGetSigPart(flags, tx, rx);
                     break;
                 }
 
                 case INS_GET_PK: {
+                    if( os_global_pin_is_validated() != BOLOS_UX_OK ) {
+                        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
+                    }
                     handleGetPubKeyPart(flags, tx, rx);
                     break;
                 }
