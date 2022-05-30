@@ -55,9 +55,7 @@ ifndef COIN
 COIN=ARWEAVE
 endif
 
-APPVERSION_M=1
-APPVERSION_N=0
-APPVERSION_P=4
+include $(CURDIR)/Makefile.version
 
 $(info COIN  = [$(COIN)])
 
