@@ -231,7 +231,7 @@ describe('Basic checks', function () {
       // Wait until we are not in the main menu
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-      await sim.compareSnapshotsAndApprove(".", `${m.prefix.toLowerCase()}-sign_transfer`);
+      await sim.compareSnapshotsAndApprove(".", `${m.prefix.toLowerCase()}-sign_transfer`,50000);
 
       const resp = await signatureRequest;
       console.log(resp);
