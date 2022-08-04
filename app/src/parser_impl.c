@@ -176,6 +176,6 @@ parser_error_t _validateTx(__Z_UNUSED const parser_context_t *c, const parser_tx
 uint8_t _getNumItems(__Z_UNUSED const parser_context_t *c, const parser_tx_t *v) {
     if(!app_mode_expert())
         return (CONST_NUM_UI_ITEMS-2);
-
+    
     return CONST_NUM_UI_ITEMS + v->tags_count;
 }

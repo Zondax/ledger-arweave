@@ -284,13 +284,16 @@ parser_error_t parser_getItem(const parser_context_t *ctx,
             CHECK_PARSER_ERR(parser_printLastTx(&parser_tx_obj.last_tx, outVal, outValLen, pageIdx, pageCount));
             return parser_ok;
         case 4:
-            snprintf(outKey, outKeyLen, "Data root");
-            CHECK_PARSER_ERR(parser_printData(&parser_tx_obj.data_root, outVal, outValLen, pageIdx, pageCount));
-            return parser_ok;
-        case 5:
             snprintf(outKey, outKeyLen, "Data size");
             CHECK_PARSER_ERR(parser_printQuantity(&parser_tx_obj.data_size, outVal, outValLen, pageIdx, pageCount));
             return parser_ok;
+        case 5:
+            if(parser_tx_obj.data_root.len != 0 ){
+                snprintf(outKey, outKeyLen, "Data root");
+                CHECK_PARSER_ERR(parser_printData(&parser_tx_obj.data_root, outVal, outValLen, pageIdx, pageCount));
+                return parser_ok;
+            }
+
         default:
             displayIdx -= CONST_NUM_UI_ITEMS;
             return parser_printTag(&parser_tx_obj.tags[displayIdx],
