@@ -38,7 +38,8 @@ typedef enum {
     kind_unknown
 } address_kind_e;
 
-#define COIN_AMOUNT_DECIMAL_PLACES          0                           // FIXME: Adjust this
+#define COIN_AMOUNT_DECIMAL_PLACES          12                           
+#define COIN_DEFAULT_DENOM_REPR             "AR "
 #define COIN_SUPPORTED_TX_VERSION           0
 
 #define MENU_MAIN_APP_LINE1                 "Arweave"
