@@ -263,4 +263,56 @@ describe('Basic checks', function () {
       await sim.close();
     }
   });
+
+  test.each(models)('sign - transfer expert', async function (m) {
+    const sim = new Zemu(m.path);
+    try {
+      await sim.start({...defaultOptions, model: m.name});
+      const app = new ArweaveApp(sim.getTransport());
+
+      // Enable expert mode
+      await sim.clickRight();
+      await sim.clickBoth();
+      await sim.clickLeft();
+
+      const exampleData = await getFakeTx();
+      console.log(exampleData)
+
+      // do not wait here..
+      const signatureRequest = app.sign(exampleData.transaction);
+      // Wait until we are not in the main menu
+      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+
+      await sim.compareSnapshotsAndApprove(".", `${m.prefix.toLowerCase()}-sign_transfer_expert`,50000);
+
+      const resp = await signatureRequest;
+      console.log(resp);
+
+      expect(resp.returnCode).toEqual(0x6F01);
+      //expect(resp.errorMessage).toEqual("No errors");
+
+      // FIXME this is disabled as app is not signing anything on testing mode.
+      /*
+      const id = await Arweave.crypto.hash(resp.signature);
+      const sigjs = {
+        signature: await Arweave.utils.bufferTob64Url(resp.signature),
+        id: await Arweave.utils.bufferTob64Url(id)
+      };
+
+      await exampleData.transaction.setSignature(sigjs);
+      //Manually add owner again, it disappeared..
+      await exampleData.transaction.setOwner(owner);
+      console.log(exampleData.transaction);
+
+      const v2 = await Arweave.transactions.verify(exampleData.transaction);
+      console.log(v2);*/
+
+      //This fails now, but the above transaction verify works.
+      // let v3 = await arweave.crypto.verify(owner, signatureData, response.signature);
+      // console.log(v3);
+      // Prepare digest
+    } finally {
+      await sim.close();
+    }
+  });
 });

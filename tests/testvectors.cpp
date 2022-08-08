@@ -28,13 +28,13 @@
 
 using ::testing::TestWithParam;
 
-void check_testcase(const testcase_t &testcase) {
+void check_testcase(const testcase_t &testcase, bool expert_mode) {
     auto tc = ReadTestCaseData(testcase.testcases, testcase.index);
 
     parser_context_t ctx;
     parser_error_t err;
 
-    app_mode_set_expert(tc.expert);
+    app_mode_set_expert(expert_mode);
 
     err = parser_parse(&ctx, tc.blob.data(), tc.blob.size());
     if (tc.valid) {
@@ -60,25 +60,28 @@ void check_testcase(const testcase_t &testcase) {
     }
 
     std::cout << " EXPECTED ============" << std::endl;
-    for (const auto &i : tc.expected_ui_output) {
+    std::cout << std::endl;
+    for (const auto &i : output) {
         std::cout << i << std::endl;
     }
+    std::cout << std::endl << std::endl;
 
-    EXPECT_EQ(output.size(), tc.expected_ui_output.size());
-    for (size_t i = 0; i < tc.expected_ui_output.size(); i++) {
+    std::vector<std::string> expected = app_mode_expert() && !tc.expected_expert.empty() ? tc.expected_expert : tc.expected;
+    EXPECT_EQ(output.size(), expected.size());
+    for (size_t i = 0; i < expected.size(); i++) {
         if (i < output.size()) {
-            EXPECT_THAT(output[i], testing::Eq(tc.expected_ui_output[i]));
+            EXPECT_THAT(output[i], testing::Eq(expected[i]));
         }
     }
 }
 
-void calculate_digest(const testcase_t &testcase) {
+void calculate_digest(const testcase_t &testcase, bool expert_mode) {
     auto tc = ReadTestCaseData(testcase.testcases, testcase.index);
 
     parser_context_t ctx;
     parser_error_t err;
 
-    app_mode_set_expert(tc.expert);
+    app_mode_set_expert(expert_mode);
 
     err = parser_parse(&ctx, tc.blob.data(), tc.blob.size());
     if (tc.valid) {
@@ -138,8 +141,10 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::ValuesIn(GetJsonTestCases("testvectors/issues.json")), VerifyTestVectors::PrintToStringParamName()
 );
 
-TEST_P(VerifyTestVectors, CheckUIOutput_Manual) { check_testcase(GetParam()); }
+TEST_P(VerifyTestVectors, CheckUIOutput_Manual) { check_testcase(GetParam(),false); }
 
-TEST_P(VerifyTestVectors, CalculateDigest) { calculate_digest(GetParam()); }
+TEST_P(VerifyTestVectors, CheckUIOutput_Manual_Expert) { check_testcase(GetParam(),true); }
+
+TEST_P(VerifyTestVectors, CalculateDigest) { calculate_digest(GetParam(), false); }
 
 #pragma clang diagnostic pop
