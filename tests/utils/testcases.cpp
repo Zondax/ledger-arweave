@@ -35,7 +35,6 @@ testcaseData_t ReadRawTestCase(const std::shared_ptr<Json::Value> &jsonSource, i
     description = CleanTestname(description);
     auto valid = v["valid"].asBool();
     auto testnet = v["testnet"].asBool();
-    auto expert = v["expert"].asBool();
 
     auto bytes_hexstring = v["blob"].asString();
     assert(bytes_hexstring.size() % 2 == 0);
@@ -44,9 +43,14 @@ testcaseData_t ReadRawTestCase(const std::shared_ptr<Json::Value> &jsonSource, i
 
     auto digest = v["digest"].asString();
 
-    auto outputs = std::vector<std::string>();
-    for (const auto& s : v["expected_output"]) {
-        outputs.push_back(s.asString());
+    auto expected = std::vector<std::string>();
+    for (const auto& s : v["output"]) {
+        expected.push_back(s.asString());
+    }
+
+        auto expected_expert = std::vector<std::string>();
+    for (const auto& s : v["output_expert"]) {
+        expected_expert.push_back(s.asString());
     }
 
     return {
@@ -54,18 +58,18 @@ testcaseData_t ReadRawTestCase(const std::shared_ptr<Json::Value> &jsonSource, i
             //////
             valid,
             testnet,
-            expert,
             //////
             blob,
             digest,
-            outputs
+            expected,
+            expected_expert,
     };
 }
 
 testcaseData_t ReadTestCaseData(const std::shared_ptr<Json::Value> &jsonSource, int index) {
     testcaseData_t tcd = ReadRawTestCase(jsonSource, index);
     // Anotate with expected ui output
-    tcd.expected_ui_output = GenerateExpectedUIOutput(tcd);
+    tcd.expected= GenerateExpectedUIOutput(tcd);
     return tcd;
 }
 

@@ -26,7 +26,7 @@ extern "C" {
 #include <sigutils.h>
 #include "zxerror.h"
 
-#if defined(TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 
 #ifdef HAVE_RSA
 #include "cx_ram.h"

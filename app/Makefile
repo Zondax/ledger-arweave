@@ -1,7 +1,7 @@
 #*******************************************************************************
-#   Ledger App
-#   (c) 2018-2021 Zondax GmbH
-#   (c) 2017 Ledger
+#  Ledger App
+#  (c) 2018 - 2022 Zondax GmbH
+#  (c) 2017 Ledger
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ all: bin/app.elf
 	@echo "APPNAME=\"${APPNAME}\"" >> $(OUTPUT_INSTALLER)
 	@echo "APPVERSION=\"${APPVERSION}\"" >> $(OUTPUT_INSTALLER)
 	@echo "APPPATH=\""${APPPATH}"\"" >> $(OUTPUT_INSTALLER)
-	@echo "LOAD_PARAMS=\"${COMMON_LOAD_PARAMS}\"" >> $(OUTPUT_INSTALLER)
-	@echo "DELETE_PARAMS=\"${COMMON_DELETE_PARAMS}\"" >> $(OUTPUT_INSTALLER)
+	@echo "LOAD_PARAMS=($$(echo "${APP_LOAD_PARAMS}" | sed -e "s|"${APPNAME}"|\""${APPNAME}"\"|"))" >> $(OUTPUT_INSTALLER)
+	@echo "DELETE_PARAMS=($$(echo "${COMMON_DELETE_PARAMS}" | sed -e "s|"${APPNAME}"|\""${APPNAME}"\"|"))" >> $(OUTPUT_INSTALLER)
 	@echo "APPHEX=\"" >> $(OUTPUT_INSTALLER)
 	@cat $(CURDIR)/bin/app.hex >> $(OUTPUT_INSTALLER)
 	@echo "\"" >> $(OUTPUT_INSTALLER)
@@ -55,9 +55,7 @@ ifndef COIN
 COIN=ARWEAVE
 endif
 
-APPVERSION_M=1
-APPVERSION_N=0
-APPVERSION_P=2
+include $(CURDIR)/Makefile.version
 
 $(info COIN  = [$(COIN)])
 
@@ -78,7 +76,7 @@ endef
 $(error "$(error_message)")
 endif
 
-APP_LOAD_PARAMS = --appFlags 0x200 --delete $(COMMON_LOAD_PARAMS) --path $(APPPATH) --path "44'/1'" --tlvraw 9F:01
+APP_LOAD_PARAMS = --delete $(COMMON_LOAD_PARAMS) --path $(APPPATH) --path "44'/1'" --tlvraw 9F:01
 DEFINES += HAVE_PENDING_REVIEW_SCREEN
 
 INCLUDES_PATH += $(BOLOS_SDK)/lib_cxng/src
@@ -87,7 +85,8 @@ APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_pkcs1.c
 APP_SOURCE_PATH   += $(BOLOS_SDK)/lib_cxng/src/cx_utils.c
 
 ifeq ($(TARGET_NAME),TARGET_NANOS)
-APP_STACK_SIZE:=2896
+APP_LOAD_PARAMS += --appFlags 0x000
+APP_STACK_SIZE:=2888
 ICONNAME:=$(CURDIR)/nanos_icon.gif
 OUTPUT_ELF ?= $(CURDIR)/output/app_s.elf
 OUTPUT_INSTALLER := $(CURDIR)/pkg/installer_s.sh
@@ -95,11 +94,20 @@ DEFINES += CBOR_PARSER_MAX_RECURSIONS=4
 endif
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
+APP_LOAD_PARAMS += --appFlags 0x200
 APP_STACK_SIZE:=4096
 ICONNAME:=$(CURDIR)/nanox_icon.gif
 OUTPUT_ELF ?= $(CURDIR)/output/app_x.elf
 OUTPUT_INSTALLER:= $(CURDIR)/pkg/installer_x.sh
 DEFINES += CBOR_PARSER_MAX_RECURSIONS=16
+endif
+
+ifeq ($(TARGET_NAME),TARGET_NANOS2)
+APP_LOAD_PARAMS += --appFlags 0x000
+SCRIPT_LD:=$(CURDIR)/script_s2.ld
+ICONNAME:=$(CURDIR)/nanox_icon.gif
+OUTPUT_ELF ?= $(CURDIR)/output/app_s2.elf
+OUTPUT_INSTALLER:= $(CURDIR)/pkg/installer_s2.sh
 endif
 
 $(info TARGET_NAME  = [$(TARGET_NAME)])
@@ -129,7 +137,10 @@ DEFINES       += HAVE_BOLOS_APP_STACK_CANARY
 DEFINES       += HAVE_WEBUSB WEBUSB_URL_SIZE_B=0 WEBUSB_URL=""
 DEFINES		  += HAVE_HASH HAVE_BLAKE2 HAVE_SHA256 HAVE_SHA512
 
-ifeq ($(TARGET_NAME),TARGET_NANOX)
+ifeq ($(TARGET_NAME),TARGET_NANOS)
+DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=128
+else
+# Assume Nano X/S+
 DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=300
 
 DEFINES       += HAVE_GLO096
@@ -140,17 +151,15 @@ DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_EXTRABOLD_11PX
 DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
 
 DEFINES       += HAVE_UX_FLOW
+endif
 
+ifeq ($(TARGET_NAME),TARGET_NANOX)
+# X specific
 DEFINES       += HAVE_BLE
 DEFINES       += HAVE_BLE_APDU BLE_COMMAND_TIMEOUT_MS=2000
 
 SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
-else
-# Assume Nano S
-DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=128
 endif
-
-# X specific
 
 # App specific
 
@@ -219,11 +228,11 @@ clean: rust_clean
 # load, delete and listvariants are provided to comply with Ledger requirements
 .PHONY: load
 load:
-	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
+	python3 -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
 
 .PHONY: delete
 delete:
-	python -m ledgerblue.deleteApp $(COMMON_DELETE_PARAMS)
+	python3 -m ledgerblue.deleteApp $(COMMON_DELETE_PARAMS)
 
 # Import generic rules from the SDK
 include $(BOLOS_SDK)/Makefile.rules
@@ -234,3 +243,7 @@ dep/%.d: %.c Makefile
 .PHONY: listvariants
 listvariants:
 	@echo VARIANTS COIN ARWEAVE
+
+.PHONY: version
+version:
+	@echo "v$(APPVERSION)" > app.version

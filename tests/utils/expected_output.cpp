@@ -39,7 +39,7 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
         return answer;
     }
 
-    for (const auto &s: tcd.expected_ui_output) {
+    for (const auto &s: tcd.expected) {
         addTo(answer, "%s", s);
     }
 

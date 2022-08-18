@@ -27,12 +27,16 @@ extern "C" {
 #include "lcx_rsa.h"
 #endif
 
-#if defined(TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 #include "cx.h"
 #endif
 
 bool crypto_store_is_initialized();
 bool is_sig_set();
+bool crypto_store_slot_is_initialized(uint8_t slot);
+bool same_masterseed(uint8_t slot);
+zxerr_t crypto_initialize_slot();
+zxerr_t crypto_uninitialized_slot(uint8_t slot);
 
 zxerr_t crypto_store_signature(uint8_t *sig);
 zxerr_t crypto_signature_part(uint8_t *sig, uint8_t index);

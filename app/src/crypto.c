@@ -22,7 +22,7 @@
 #include "parser_common.h"
 #include "b64url.h"
 
-#if defined(TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 #ifdef HAVE_RSA
 union cx_u G_cx;
 #endif // HAVE_RSA

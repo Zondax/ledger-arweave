@@ -30,6 +30,9 @@
 #include "coin.h"
 #include "zxmacros.h"
 
+#define REPLY_APDU 0x03
+#define CONFIG_UI 0x00
+
 __Z_INLINE void handleGetAddress(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     *tx = 0;
     if(rx < APDU_MIN_LENGTH){
@@ -52,7 +55,7 @@ __Z_INLINE void handleGetAddress(volatile uint32_t *flags, volatile uint32_t *tx
 
     if (requireConfirmation) {
         view_review_init(addr_getItem, addr_getNumItems, app_reply_address);
-        view_review_show();
+        view_review_show(REPLY_APDU);
 
         *flags |= IO_ASYNCH_REPLY;
         return;
@@ -126,7 +129,7 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
 
     CHECK_APP_CANARY()
     view_review_init(tx_getItem, tx_getNumItems, app_sign);
-    view_review_show();
+    view_review_show(REPLY_APDU);
     *flags |= IO_ASYNCH_REPLY;
 }
 
@@ -152,21 +155,33 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                 }
 
                 case INS_GET_ADDRESS: {
+                    if( os_global_pin_is_validated() != BOLOS_UX_OK ) {
+                        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
+                    }
                     handleGetAddress(flags, tx, rx);
                     break;
                 }
 
                 case INS_SIGN: {
+                    if( os_global_pin_is_validated() != BOLOS_UX_OK ) {
+                        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
+                    }
                     handleSign(flags, tx, rx);
                     break;
                 }
 
                 case INS_GET_SIG: {
+                    if( os_global_pin_is_validated() != BOLOS_UX_OK ) {
+                        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
+                    }
                     handleGetSigPart(flags, tx, rx);
                     break;
                 }
 
                 case INS_GET_PK: {
+                    if( os_global_pin_is_validated() != BOLOS_UX_OK ) {
+                        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
+                    }
                     handleGetPubKeyPart(flags, tx, rx);
                     break;
                 }

@@ -19,10 +19,10 @@ typedef struct {
     std::string description;
     bool valid;
     bool testnet;
-    bool expert;
     std::vector<uint8_t> blob;
     std::string digest;
-    std::vector<std::string> expected_ui_output;
+    std::vector<std::string> expected;
+    std::vector<std::string> expected_expert;
 } testcaseData_t;
 
 typedef struct {
