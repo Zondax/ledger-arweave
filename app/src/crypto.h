@@ -26,14 +26,6 @@ extern "C" {
 #include <sigutils.h>
 #include "zxerror.h"
 
-#if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
-
-#ifdef HAVE_RSA
-#include "cx_ram.h"
-#endif // HAVE_RSA
-
-#endif
-
 void crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *out, unsigned int outLen);
 
 zxerr_t crypto_fillAddress(uint8_t *buffer, uint16_t bufferLen, uint16_t *addrLen);
