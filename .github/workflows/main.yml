@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   configure:
@@ -25,8 +25,6 @@ jobs:
         run: |
           sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10
           make deps
-          brew install conan
-          conan config install https://github.com/conan-io/conanclientcert.git
       - run: cmake -DCMAKE_BUILD_TYPE=Debug . && make
       - run: GTEST_COLOR=1 ASAN_OPTIONS=detect_leaks=0 ctest -VV
 
@@ -109,7 +107,7 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v2
         with:
-          node-version: '16.13.0'
+          node-version: "16.13.0"
       - name: Install yarn
         run: |
           npm install -g yarn
@@ -125,8 +123,41 @@ jobs:
           export PATH=~/.cargo/bin:$PATH
           make zemu_test
 
+  test_zemu_addr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Install yarn
+        run: |
+          npm install -g yarn
+      - name: Build Ledger app
+        run: |
+          make
+      - name: Build/Install build js deps
+        run: |
+          make zemu_install
+      - name: Run zemu tests
+        run: |
+          COIN=addr make zemu_test
+
   build_package_nanos:
-    needs: [ configure, build, build_ledger_nano_S, build_ledger_nano_X,  build_ledger_nano_SP, test_zemu ]
+    needs:
+      [
+        configure,
+        build,
+        build_ledger_nano_S,
+        build_ledger_nano_X,
+        build_ledger_nano_SP,
+        test_zemu,
+      ]
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     container:
@@ -169,7 +200,15 @@ jobs:
           prerelease: false
 
   build_package_nanos_plus:
-    needs: [ configure, build, build_ledger_nano_S, build_ledger_nano_X,  build_ledger_nano_SP, test_zemu ]
+    needs:
+      [
+        configure,
+        build,
+        build_ledger_nano_S,
+        build_ledger_nano_X,
+        build_ledger_nano_SP,
+        test_zemu,
+      ]
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     container:

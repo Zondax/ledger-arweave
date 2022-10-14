@@ -30,3 +30,14 @@ default:
 	$(info "Calling app Makefile for target $@")
 	COIN=$(COIN) $(MAKE) -C app $@
 endif
+
+test_all:
+	make zemu_install
+
+	# test addresses generation
+	make
+	COIN=addr make zemu_test
+
+	# test workflows
+	APP_TESTING=1 make
+	make zemu_test
