@@ -26,7 +26,7 @@ import {
   PAYLOAD_TYPE,
   processErrorResponse,
 } from "./common";
-import Arweave from 'arweave';
+import Arweave from "arweave";
 
 function processGetRSAResponse(response) {
   let partialResponse = response;
@@ -71,25 +71,22 @@ export default class ArweaveApp {
   }
 
   static encodeu16(u16Value) {
-    return new Uint8Array([
-      u16Value >> 8,
-      u16Value & 0xFF
-    ]);
+    return new Uint8Array([u16Value >> 8, u16Value & 0xff]);
   }
 
   static concatArray(a, b) {
-    let tmp = new Uint8Array(a.length + b.length)
-    tmp.set(a)
+    let tmp = new Uint8Array(a.length + b.length);
+    tmp.set(a);
     tmp.set(b, a.length);
     return tmp;
   }
 
   static encodeWithLen(input) {
-    return ArweaveApp.concatArray(ArweaveApp.encodeu16(input.length), input)
+    return ArweaveApp.concatArray(ArweaveApp.encodeu16(input.length), input);
   }
 
   static flatten(input) {
-    let blob = new Uint8Array(0)
+    let blob = new Uint8Array(0);
     for (let i = 0; i < input.length; i++) {
       blob = ArweaveApp.concatArray(blob, input[i]);
     }
@@ -97,35 +94,55 @@ export default class ArweaveApp {
   }
 
   static encodeTx(tx) {
-    let serializedTags = []
+    let serializedTags = [];
     for (let i = 0; i < tx.tags.length; i++) {
       let currentTag = tx.tags[i];
       console.log(currentTag);
 
-      let encodedKey = ArweaveApp.encodeWithLen(currentTag.get("name", {decode: true, string: false}));
-      let encodedVal = ArweaveApp.encodeWithLen(currentTag.get("value", {decode: true, string: false}));
+      let encodedKey = ArweaveApp.encodeWithLen(
+        currentTag.get("name", { decode: true, string: false })
+      );
+      let encodedVal = ArweaveApp.encodeWithLen(
+        currentTag.get("value", { decode: true, string: false })
+      );
 
-      serializedTags.push(encodedKey)
-      serializedTags.push(encodedVal)
+      serializedTags.push(encodedKey);
+      serializedTags.push(encodedVal);
     }
 
     let flatSerializedTags = ArweaveApp.flatten(serializedTags);
 
     let tmp = [
-      ArweaveApp.encodeWithLen(Arweave.utils.stringToBuffer(tx.format.toString())),
-      ArweaveApp.encodeWithLen(tx.get("owner", {decode: true, string: false})),
-      ArweaveApp.encodeWithLen(tx.get("target", {decode: true, string: false})),
-      ArweaveApp.encodeWithLen(Arweave.utils.stringToBuffer(tx.quantity.toString())),
-      ArweaveApp.encodeWithLen(Arweave.utils.stringToBuffer(tx.reward.toString())),
-      ArweaveApp.encodeWithLen(tx.get("last_tx", {decode: true, string: false})),
+      ArweaveApp.encodeWithLen(
+        Arweave.utils.stringToBuffer(tx.format.toString())
+      ),
+      ArweaveApp.encodeWithLen(
+        tx.get("owner", { decode: true, string: false })
+      ),
+      ArweaveApp.encodeWithLen(
+        tx.get("target", { decode: true, string: false })
+      ),
+      ArweaveApp.encodeWithLen(
+        Arweave.utils.stringToBuffer(tx.quantity.toString())
+      ),
+      ArweaveApp.encodeWithLen(
+        Arweave.utils.stringToBuffer(tx.reward.toString())
+      ),
+      ArweaveApp.encodeWithLen(
+        tx.get("last_tx", { decode: true, string: false })
+      ),
       ArweaveApp.encodeu16(tx.tags.length),
       flatSerializedTags,
-      ArweaveApp.encodeWithLen(Arweave.utils.stringToBuffer(tx.data_size.toString())),
-      ArweaveApp.encodeWithLen(tx.get("data_root", {decode: true, string: false})),
+      ArweaveApp.encodeWithLen(
+        Arweave.utils.stringToBuffer(tx.data_size.toString())
+      ),
+      ArweaveApp.encodeWithLen(
+        tx.get("data_root", { decode: true, string: false })
+      ),
     ];
 
     let blob = ArweaveApp.flatten(tmp);
-    console.log(Buffer.from(blob).toString("hex"))
+    console.log(Buffer.from(blob).toString("hex"));
     return blob;
   }
 
@@ -146,7 +163,7 @@ export default class ArweaveApp {
   }
 
   async signGetChunks(message) {
-    console.log("signGetChunks")
+    console.log("signGetChunks");
     return ArweaveApp.prepareChunks(message);
   }
 
@@ -210,7 +227,9 @@ export default class ArweaveApp {
 
   async getAddressHash() {
     return this.transport
-      .send(CLA, INS.GET_ADDRESS, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
+      .send(CLA, INS.GET_ADDRESS, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [
+        0x9000,
+      ])
       .then(processGetAddrResponse, processErrorResponse);
   }
 
@@ -231,7 +250,10 @@ export default class ArweaveApp {
       return req3;
     }
 
-    let pk = Buffer.concat([Buffer.from(req2.output), Buffer.from(req3.output)]);
+    let pk = Buffer.concat([
+      Buffer.from(req2.output),
+      Buffer.from(req3.output),
+    ]);
     let owner = await Arweave.utils.bufferTob64Url(pk);
 
     return {
@@ -246,30 +268,45 @@ export default class ArweaveApp {
   async getSignaturePart(partnum) {
     if (partnum == 0) {
       return this.transport
-          .send(CLA, INS.GET_SIG, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
-          .then(processGetRSAResponse, processErrorResponse);
-    }else{
+        .send(CLA, INS.GET_SIG, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [
+          0x9000,
+        ])
+        .then(processGetRSAResponse, processErrorResponse);
+    } else {
       return this.transport
-          .send(CLA, INS.GET_SIG, P1_VALUES.ONLY_RETRIEVE, 1, Buffer.from([]), [0x9000])
-          .then(processGetRSAResponse, processErrorResponse);
+        .send(CLA, INS.GET_SIG, P1_VALUES.ONLY_RETRIEVE, 1, Buffer.from([]), [
+          0x9000,
+        ])
+        .then(processGetRSAResponse, processErrorResponse);
     }
   }
 
   async getPubKeyPart(partnum) {
     if (partnum == 0) {
       return this.transport
-          .send(CLA, INS.GET_PK, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [0x9000])
-          .then(processGetRSAResponse, processErrorResponse);
-    }else{
+        .send(CLA, INS.GET_PK, P1_VALUES.ONLY_RETRIEVE, 0, Buffer.from([]), [
+          0x9000,
+        ])
+        .then(processGetRSAResponse, processErrorResponse);
+    } else {
       return this.transport
-          .send(CLA, INS.GET_PK, P1_VALUES.ONLY_RETRIEVE, 1, Buffer.from([]), [0x9000])
-          .then(processGetRSAResponse, processErrorResponse);
+        .send(CLA, INS.GET_PK, P1_VALUES.ONLY_RETRIEVE, 1, Buffer.from([]), [
+          0x9000,
+        ])
+        .then(processGetRSAResponse, processErrorResponse);
     }
   }
 
   async showAddress() {
     return this.transport
-      .send(CLA, INS.GET_ADDRESS, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, Buffer.from([]), [0x9000])
+      .send(
+        CLA,
+        INS.GET_ADDRESS,
+        P1_VALUES.SHOW_ADDRESS_IN_DEVICE,
+        0,
+        Buffer.from([]),
+        [0x9000]
+      )
       .then(processGetAddrResponse, processErrorResponse);
   }
 
@@ -289,7 +326,9 @@ export default class ArweaveApp {
         let errorMessage = errorCodeToString(returnCode);
 
         if (returnCode === 0x6a80 || returnCode === 0x6984) {
-          errorMessage = `${errorMessage} : ${response.slice(0, response.length - 2).toString("ascii")}`;
+          errorMessage = `${errorMessage} : ${response
+            .slice(0, response.length - 2)
+            .toString("ascii")}`;
         }
 
         let output = null;
@@ -322,7 +361,10 @@ export default class ArweaveApp {
       return req3;
     }
 
-    let signature = Buffer.concat([Buffer.from(req2.output), Buffer.from(req3.output)]);
+    let signature = Buffer.concat([
+      Buffer.from(req2.output),
+      Buffer.from(req3.output),
+    ]);
 
     return {
       deephash: req1.digest,
@@ -333,33 +375,36 @@ export default class ArweaveApp {
   }
 
   async signGetDigest(message) {
-    console.log("sign")
+    console.log("sign");
 
     return this.signGetChunks(message).then((chunks) => {
-      return this.signSendChunk(1, chunks.length, chunks[0]).then(async (response) => {
-        let result = {
-          returnCode: response.returnCode,
-          errorMessage: response.errorMessage,
-          output: null,
-        };
+      return this.signSendChunk(1, chunks.length, chunks[0]).then(
+        async (response) => {
+          let result = {
+            returnCode: response.returnCode,
+            errorMessage: response.errorMessage,
+            output: null,
+          };
 
-        for (let i = 1; i < chunks.length; i += 1) {
-          // eslint-disable-next-line no-await-in-loop
-          result = await this.signSendChunk(1 + i, chunks.length, chunks[i]);
-          if (result.returnCode !== ERROR_CODE.NoError) {
-            break;
+          for (let i = 1; i < chunks.length; i += 1) {
+            // eslint-disable-next-line no-await-in-loop
+            result = await this.signSendChunk(1 + i, chunks.length, chunks[i]);
+            if (result.returnCode !== ERROR_CODE.NoError) {
+              break;
+            }
           }
-        }
 
-        console.log(result)
+          console.log(result);
 
-        return {
-          returnCode: result.returnCode,
-          errorMessage: result.errorMessage,
-          // ///
-          digest: result.output,
-        };
-      }, processErrorResponse);
+          return {
+            returnCode: result.returnCode,
+            errorMessage: result.errorMessage,
+            // ///
+            digest: result.output,
+          };
+        },
+        processErrorResponse
+      );
     }, processErrorResponse);
   }
 
@@ -372,14 +417,23 @@ export default class ArweaveApp {
       payloadType = PAYLOAD_TYPE.LAST;
     }
     return this.transport
-      .send(CLA, INS.GET_DIGEST, payloadType, 0, chunk, [0x9000, 0x6984, 0x6a80])
+      .send(
+        CLA,
+        INS.GET_DIGEST,
+        payloadType,
+        0,
+        chunk,
+        [0x9000, 0x6984, 0x6a80]
+      )
       .then((response) => {
         const errorCodeData = response.slice(-2);
         const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
         let errorMessage = errorCodeToString(returnCode);
 
         if (returnCode === 0x6a80 || returnCode === 0x6984) {
-          errorMessage = `${errorMessage} : ${response.slice(0, response.length - 2).toString("ascii")}`;
+          errorMessage = `${errorMessage} : ${response
+            .slice(0, response.length - 2)
+            .toString("ascii")}`;
         }
 
         let digest = null;
@@ -396,31 +450,38 @@ export default class ArweaveApp {
   }
 
   async digest(message) {
-    console.log("digest")
+    console.log("digest");
 
     return this.signGetChunks(message).then((chunks) => {
-      return this.digestSendChunk(1, chunks.length, chunks[0]).then(async (response) => {
-        let result = {
-          returnCode: response.returnCode,
-          errorMessage: response.errorMessage,
-          digest: null,
-        };
+      return this.digestSendChunk(1, chunks.length, chunks[0]).then(
+        async (response) => {
+          let result = {
+            returnCode: response.returnCode,
+            errorMessage: response.errorMessage,
+            digest: null,
+          };
 
-        for (let i = 1; i < chunks.length; i += 1) {
-          // eslint-disable-next-line no-await-in-loop
-          result = await this.digestSendChunk(1 + i, chunks.length, chunks[i]);
-          if (result.returnCode !== ERROR_CODE.NoError) {
-            break;
+          for (let i = 1; i < chunks.length; i += 1) {
+            // eslint-disable-next-line no-await-in-loop
+            result = await this.digestSendChunk(
+              1 + i,
+              chunks.length,
+              chunks[i]
+            );
+            if (result.returnCode !== ERROR_CODE.NoError) {
+              break;
+            }
           }
-        }
 
-        return {
-          digest: result.digest,
-          // ///
-          returnCode: result.returnCode,
-          errorMessage: result.errorMessage,
-        };
-      }, processErrorResponse);
+          return {
+            digest: result.digest,
+            // ///
+            returnCode: result.returnCode,
+            errorMessage: result.errorMessage,
+          };
+        },
+        processErrorResponse
+      );
     }, processErrorResponse);
   }
 }
