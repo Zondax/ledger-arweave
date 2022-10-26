@@ -47,7 +47,7 @@ const ERROR_DESCRIPTION = {
   0x6a80: "Bad key handle",
   0x6b00: "Invalid P1/P2",
   0x6d00: "Instruction not supported",
-  0x6e00: "App does not seem to be open",
+  0x6e01: "App does not seem to be open",
   0x6f00: "Unknown error",
   0x6f01: "Sign/verify error",
 };
@@ -58,12 +58,17 @@ export function errorCodeToString(statusCode) {
 }
 
 function isDict(v) {
-  return typeof v === "object" && v !== null && !(v instanceof Array) && !(v instanceof Date);
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    !(v instanceof Array) &&
+    !(v instanceof Date)
+  );
 }
 
 function printBIP44Item(v) {
   let hardened = v >= 0x8000000;
-  return `${v & 0x7FFFFFFF}${hardened ? "'" : ""}`;
+  return `${v & 0x7fffffff}${hardened ? "'" : ""}`;
 }
 
 export function printBIP44Path(pathBytes) {
@@ -77,17 +82,11 @@ export function printBIP44Path(pathBytes) {
     console.log(pathValues[i]);
   }
 
-  return `m/${
-    printBIP44Item(pathValues[0])
-  }/${
-    printBIP44Item(pathValues[1])
-  }/${
-    printBIP44Item(pathValues[2])
-  }/${
-    printBIP44Item(pathValues[3])
-  }/${
-    printBIP44Item(pathValues[4])
-  }`;
+  return `m/${printBIP44Item(pathValues[0])}/${printBIP44Item(
+    pathValues[1]
+  )}/${printBIP44Item(pathValues[2])}/${printBIP44Item(
+    pathValues[3]
+  )}/${printBIP44Item(pathValues[4])}`;
 }
 
 export function processErrorResponse(response) {
@@ -127,7 +126,11 @@ export async function getVersion(transport) {
     let targetId = 0;
     if (response.length >= 9) {
       /* eslint-disable no-bitwise */
-      targetId = (response[5] << 24) + (response[6] << 16) + (response[7] << 8) + (response[8] << 0);
+      targetId =
+        (response[5] << 24) +
+        (response[6] << 16) +
+        (response[7] << 8) +
+        (response[8] << 0);
       /* eslint-enable no-bitwise */
     }
 
@@ -175,7 +178,9 @@ export function serializePathv1(path) {
     const childNumber = Number(child);
 
     if (Number.isNaN(childNumber)) {
-      throw new Error(`Invalid path : ${child} is not a number. (e.g "m/44'/1'/5'/0/3")`);
+      throw new Error(
+        `Invalid path : ${child} is not a number. (e.g "m/44'/1'/5'/0/3")`
+      );
     }
 
     if (childNumber >= HARDENED) {
@@ -206,7 +211,9 @@ export async function signSendChunkv1(app, chunkIdx, chunkNum, chunk) {
       let errorMessage = errorCodeToString(returnCode);
 
       if (returnCode === 0x6a80 || returnCode === 0x6984) {
-        errorMessage = `${errorMessage} : ${response.slice(0, response.length - 2).toString("ascii")}`;
+        errorMessage = `${errorMessage} : ${response
+          .slice(0, response.length - 2)
+          .toString("ascii")}`;
       }
 
       let signature = null;
