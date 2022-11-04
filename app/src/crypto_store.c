@@ -86,13 +86,17 @@ zxerr_t crypto_pubkey_part(uint8_t *key, uint8_t index){
     }
     cx_rsa_4096_public_key_t *rsa_pubkey = crypto_store_get_pubkey();
     uint8_t *start = rsa_pubkey->n;
+    if(start == NULL) {
+        return zxerr_invalid_crypto_settings;
+    }
+
     MEMCPY(key, start + index*RSA_MODULUS_HALVE, RSA_MODULUS_HALVE);
     return zxerr_ok;
 }
 
 
 zxerr_t crypto_deriveMasterSeed() {
-    uint8_t masterSeed[64];
+    uint8_t masterSeed[64] = {0};
     uint32_t master_path[] = {
             HDPATH_0_DEFAULT,
             HDPATH_1_DEFAULT,
@@ -101,18 +105,36 @@ zxerr_t crypto_deriveMasterSeed() {
             0x80000000u
     };
 
-    os_perso_derive_node_bip32_seed_key(HDW_NORMAL,
-                                        CX_CURVE_Ed25519,
-                                        master_path, HDPATH_LEN_DEFAULT,
-                                        masterSeed,
-                                        NULL, NULL, 0);
+    zxerr_t err = zxerr_ok;
+    BEGIN_TRY
+    {
+        TRY
+        {
+            os_perso_derive_node_bip32_seed_key(HDW_NORMAL,
+                                                CX_CURVE_Ed25519,
+                                                master_path, HDPATH_LEN_DEFAULT,
+                                                masterSeed,
+                                                NULL, NULL, 0);
 
-    MEMCPY_NV((void*) &N_crypto_store[slot_in_use].masterSeed, masterSeed, 32);
-    return zxerr_ok;
+            MEMCPY_NV((void*) &N_crypto_store[slot_in_use].masterSeed, masterSeed, 32);
+        }
+        CATCH_ALL
+        {
+            err = zxerr_unknown;
+        }
+        FINALLY
+        {
+            MEMZERO(&masterSeed, 64);
+        }
+    }
+    END_TRY;
+
+
+    return err;
 }
 
 bool same_masterseed(uint8_t slot) {
-    uint8_t masterSeed[64];
+    uint8_t masterSeed[64] = {0};
     uint32_t master_path[] = {
             HDPATH_0_DEFAULT,
             HDPATH_1_DEFAULT,
@@ -121,17 +143,36 @@ bool same_masterseed(uint8_t slot) {
             0x80000000u
     };
 
-    if (slot > 2){
+    if (slot >= 2){
         return zxerr_invalid_crypto_settings;
     }
 
-    os_perso_derive_node_bip32_seed_key(HDW_NORMAL,
-                                        CX_CURVE_Ed25519,
-                                        master_path, HDPATH_LEN_DEFAULT,
-                                        masterSeed,
-                                        NULL, NULL, 0);
-    
-    return (MEMCMP((void*) &N_crypto_store[slot].masterSeed, masterSeed, 32) == 0);
+    bool same_seed = false;
+    BEGIN_TRY
+    {
+        TRY
+        {
+            os_perso_derive_node_bip32_seed_key(HDW_NORMAL,
+                                                CX_CURVE_Ed25519,
+                                                master_path, HDPATH_LEN_DEFAULT,
+                                                masterSeed,
+                                                NULL, NULL, 0);
+
+            same_seed = (MEMCMP((void*) &N_crypto_store[slot].masterSeed, masterSeed, 32) == 0);
+        }
+        CATCH_ALL
+        {
+            same_seed = false;
+        }
+        FINALLY
+        {
+            MEMZERO(&masterSeed, 64);
+        }
+    }
+    END_TRY;
+
+
+    return same_seed;
 }
 
 zxerr_t crypto_derivePrime(uint8_t *prime, uint8_t index) {
@@ -246,7 +287,7 @@ zxerr_t crypto_uninitialized_slot(uint8_t slot) {
         MEMZERO(clean_seed, MASTERSEED_LEN);
         MEMCPY_NV((void *)&N_crypto_store[slot].masterSeed, &clean_seed, MASTERSEED_LEN);
         MEMCPY_NV((void *)&N_crypto_store[slot].initialized, &clean_init, sizeof(clean_init));
-        
+
         return zxerr_ok;
 }
 
@@ -271,8 +312,8 @@ zxerr_t crypto_store_init() {
     } else if (!crypto_store_slot_is_initialized(KEY_SLOT_2)) {
         slot_in_use=KEY_SLOT_2;
         CHECK_ZXERR(crypto_initialize_slot());
-        return zxerr_ok; 
-    } else if(same_masterseed(KEY_SLOT_2)) {      
+        return zxerr_ok;
+    } else if(same_masterseed(KEY_SLOT_2)) {
         slot_in_use=KEY_SLOT_2;
         return zxerr_ok;
     } else {
