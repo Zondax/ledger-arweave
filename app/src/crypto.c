@@ -83,16 +83,33 @@ zxerr_t crypto_sign(uint8_t *buffer, __Z_UNUSED uint16_t signatureMaxlen, __Z_UN
          return zxerr_ok;
     #endif
 
-    cx_rsa_sign((const cx_rsa_private_key_t *)rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA256, digestsmall, CX_SHA256_SIZE, sig, RSA_MODULUS_LEN);
+    zxerr_t err = zxerr_ok;
+    BEGIN_TRY
+    {
+        TRY
+        {
+            cx_rsa_sign((const cx_rsa_private_key_t *)rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA256, digestsmall, CX_SHA256_SIZE, sig, RSA_MODULUS_LEN);
 
-    zxerr_t err = crypto_store_signature(sig);
-    if (err != zxerr_ok){
-        return err;
+            err = crypto_store_signature(sig);
+
+            if(err == zxerr_ok) {
+                MEMCPY(buffer, digest, SHA384_DIGEST_LEN);
+            }
+        }
+        CATCH_ALL
+        {
+            err = zxerr_unknown;
+        }
+        FINALLY
+        {
+            rsa_privkey = NULL;
+            MEMZERO(sig, RSA_MODULUS_LEN);
+        }
     }
-
-    MEMCPY(buffer, digest, SHA384_DIGEST_LEN);
+    END_TRY;
+ 
     *sigSize = SHA384_DIGEST_LEN;
-    return zxerr_ok;
+    return err;
 }
 
 typedef struct {

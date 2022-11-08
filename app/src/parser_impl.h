@@ -19,7 +19,9 @@
 #include "parser_txdef.h"
 #include "crypto.h"
 
-#define CONST_NUM_UI_ITEMS 6
+#define CONST_NUM_UI_ITEMS 4
+#define DATA_SIZE_NUM_UI_ITEMS 1
+#define DATA_ROOT_NUM_UI_ITEMS 1
 
 #ifdef __cplusplus
 extern "C" {

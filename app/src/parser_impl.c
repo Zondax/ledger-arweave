@@ -175,7 +175,7 @@ parser_error_t _validateTx(__Z_UNUSED const parser_context_t *c, const parser_tx
 
 uint8_t _getNumItems(__Z_UNUSED const parser_context_t *c, const parser_tx_t *v) {
     if(!app_mode_expert())
-        return (CONST_NUM_UI_ITEMS-2);
-    
-    return CONST_NUM_UI_ITEMS + v->tags_count;
+        return (CONST_NUM_UI_ITEMS);
+
+    return CONST_NUM_UI_ITEMS + v->tags_count + DATA_SIZE_NUM_UI_ITEMS + (v->data_root.len > 0 ? DATA_ROOT_NUM_UI_ITEMS : 0);
 }

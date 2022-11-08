@@ -35,10 +35,6 @@ const owner =
 
 jest.setTimeout(10 * 60000)
 
-beforeAll(async () => {
-  await Zemu.checkAndPullImage()
-})
-
 describe('Standard', function () {
   test.each(models)('can start and stop container', async function (m) {
     const sim = new Zemu(m.path)
@@ -79,7 +75,7 @@ describe('Standard', function () {
     }
   })
 
-  async function getFakeTx() {
+  async function getFakeTx(enable_data: boolean, enable_tags: boolean) {
     const arweave = Arweave.init({
       host: 'arweave.net', // Hostname or IP address for a Arweave host
       port: 443, // Port
@@ -94,15 +90,17 @@ describe('Standard', function () {
       owner,
       reward: 12345,
       last_tx: 'A9Ic6RPOCXrpU1OzSFah3GfyUrCnFlAZ53NjPGjkCjVDgbQ6T1SU8ArIYWevd2aj',
-      data: '<html><head><meta charset="UTF-8"><title>Hello world!</title></head><body></body></html>',
+      data: enable_data ? '<html><head><meta charset="UTF-8"><title>Hello world!</title></head><body></body></html>' : '',
     }
 
     const transaction = await arweave.createTransaction(transactionAttributes)
 
-    transaction.addTag('App-Name', 'SmartWeaveAction')
-    transaction.addTag('App-Version', '0.3.0')
-    transaction.addTag('Contract', '6eTVr8IKPNYbMHVcpHFXr-XNaL5hT6zRJXimcP-owmo')
-    transaction.addTag('Input', '{"function":"transfer","target":"h-Bgr13OWUOkRGWrnMT0LuUKfJhRss5pfTdxHmNcXyw","qty":15000}')
+    if (enable_tags) {
+      transaction.addTag('App-Name', 'SmartWeaveAction')
+      transaction.addTag('App-Version', '0.3.0')
+      transaction.addTag('Contract', '6eTVr8IKPNYbMHVcpHFXr-XNaL5hT6zRJXimcP-owmo')
+      transaction.addTag('Input', '{"function":"transfer","target":"h-Bgr13OWUOkRGWrnMT0LuUKfJhRss5pfTdxHmNcXyw","qty":15000}')
+    }
 
     const jwtKey = {
       kty: 'RSA',
@@ -126,7 +124,7 @@ describe('Standard', function () {
   }
 
   test.each(models)('fake tx', async function (m) {
-    const exampleData = await getFakeTx()
+    const exampleData = await getFakeTx(true, true)
     console.log(exampleData)
 
     const signatureData = await exampleData.transaction.getSignatureData()
@@ -142,7 +140,7 @@ describe('Standard', function () {
       await sim.start({ ...defaultOptions, model: m.name })
       const app = new ArweaveApp(sim.getTransport())
 
-      const exampleData = await getFakeTx()
+      const exampleData = await getFakeTx(true, true)
       console.log(exampleData)
 
       // do not wait here..
@@ -172,7 +170,7 @@ describe('Standard', function () {
       await sim.clickBoth()
       await sim.clickLeft()
 
-      const exampleData = await getFakeTx()
+      const exampleData = await getFakeTx(true, true)
       console.log(exampleData)
 
       // do not wait here..
@@ -181,6 +179,171 @@ describe('Standard', function () {
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
 
       await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-sign_transfer_expert`)
+
+      const resp = await signatureRequest
+      console.log(resp)
+
+      expect(resp.returnCode).toEqual(0x6f01)
+    } finally {
+      await sim.close()
+    }
+  })
+
+  test.each(models)('sign - no data transfer', async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      await sim.start({ ...defaultOptions, model: m.name })
+      const app = new ArweaveApp(sim.getTransport())
+
+      const exampleData = await getFakeTx(false, true)
+      console.log(exampleData)
+
+      // do not wait here..
+      const signatureRequest = app.sign(exampleData.transaction)
+      // Wait until we are not in the main menu
+      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+
+      await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-sign_noData_transfer`)
+
+      const resp = await signatureRequest
+      console.log(resp)
+
+      expect(resp.returnCode).toEqual(0x6f01)
+    } finally {
+      await sim.close()
+    }
+  })
+
+  test.each(models)('sign - no data transfer expert', async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      await sim.start({ ...defaultOptions, model: m.name })
+      const app = new ArweaveApp(sim.getTransport())
+
+      // Enable expert mode
+      await sim.clickRight()
+      await sim.clickBoth()
+      await sim.clickLeft()
+
+      const exampleData = await getFakeTx(false, true)
+      console.log(exampleData)
+
+      // do not wait here..
+      const signatureRequest = app.sign(exampleData.transaction)
+      // Wait until we are not in the main menu
+      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+
+      await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-sign_noData_transfer_expert`)
+
+      const resp = await signatureRequest
+      console.log(resp)
+
+      expect(resp.returnCode).toEqual(0x6f01)
+    } finally {
+      await sim.close()
+    }
+  })
+
+  test.each(models)('sign - no tags transfer', async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      await sim.start({ ...defaultOptions, model: m.name })
+      const app = new ArweaveApp(sim.getTransport())
+
+      const exampleData = await getFakeTx(true, false)
+      console.log(exampleData)
+
+      // do not wait here..
+      const signatureRequest = app.sign(exampleData.transaction)
+      // Wait until we are not in the main menu
+      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+
+      await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-sign_noTags_transfer`)
+
+      const resp = await signatureRequest
+      console.log(resp)
+
+      expect(resp.returnCode).toEqual(0x6f01)
+    } finally {
+      await sim.close()
+    }
+  })
+
+  test.each(models)('sign - no tags transfer expert', async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      await sim.start({ ...defaultOptions, model: m.name })
+      const app = new ArweaveApp(sim.getTransport())
+
+      // Enable expert mode
+      await sim.clickRight()
+      await sim.clickBoth()
+      await sim.clickLeft()
+
+      const exampleData = await getFakeTx(true, false)
+      console.log(exampleData)
+
+      // do not wait here..
+      const signatureRequest = app.sign(exampleData.transaction)
+      // Wait until we are not in the main menu
+      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+
+      await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-sign_noTags_transfer_expert`)
+
+      const resp = await signatureRequest
+      console.log(resp)
+
+      expect(resp.returnCode).toEqual(0x6f01)
+    } finally {
+      await sim.close()
+    }
+  })
+
+  test.each(models)('sign - basic transfer', async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      await sim.start({ ...defaultOptions, model: m.name })
+      const app = new ArweaveApp(sim.getTransport())
+
+      const exampleData = await getFakeTx(false, false)
+      console.log(exampleData)
+
+      // do not wait here..
+      const signatureRequest = app.sign(exampleData.transaction)
+      // Wait until we are not in the main menu
+      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+
+      await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-sign_basic_transfer`)
+
+      const resp = await signatureRequest
+      console.log(resp)
+
+      expect(resp.returnCode).toEqual(0x6f01)
+    } finally {
+      await sim.close()
+    }
+  })
+
+  test.each(models)('sign - basic transfer expert', async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      await sim.start({ ...defaultOptions, model: m.name })
+      const app = new ArweaveApp(sim.getTransport())
+
+      // Enable expert mode
+      await sim.clickRight()
+      await sim.clickBoth()
+      await sim.clickLeft()
+
+      const exampleData = await getFakeTx(false, false)
+      console.log(exampleData)
+
+      // do not wait here..
+      const signatureRequest = app.sign(exampleData.transaction)
+      // Wait until we are not in the main menu
+      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+
+      await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-sign_basic_transfer_expert`)
 
       const resp = await signatureRequest
       console.log(resp)
