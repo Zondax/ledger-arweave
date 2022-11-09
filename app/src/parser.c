@@ -320,18 +320,22 @@ parser_error_t parser_getItem(const parser_context_t *ctx,
             snprintf(outKey, outKeyLen, "Data size");
             CHECK_PARSER_ERR(parser_printSize(&parser_tx_obj.data_size, outVal, outValLen, pageIdx, pageCount));
             return parser_ok;
-        case 5:
-            if(parser_tx_obj.data_root.len != 0 ){
-                snprintf(outKey, outKeyLen, "Data root");
-                CHECK_PARSER_ERR(parser_printData(&parser_tx_obj.data_root, outVal, outValLen, pageIdx, pageCount));
-                return parser_ok;
-            }
-
-        default:
-            displayIdx -= CONST_NUM_UI_ITEMS;
-            return parser_printTag(&parser_tx_obj.tags[displayIdx],
-                                   outKey, outKeyLen,
-                                   outVal, outValLen,
-                                   pageIdx, pageCount);
     }
+
+    if (displayIdx == 5 && parser_tx_obj.data_root.len != 0) {
+        snprintf(outKey, outKeyLen, "Data root");
+        CHECK_PARSER_ERR(parser_printData(&parser_tx_obj.data_root, outVal, outValLen, pageIdx, pageCount));
+        return parser_ok;
+    }
+
+    displayIdx -= CONST_NUM_UI_ITEMS + DATA_SIZE_NUM_UI_ITEMS + (parser_tx_obj.data_root.len != 0 ? DATA_ROOT_NUM_UI_ITEMS : 0);
+
+    if (displayIdx >= MAX_NUMBER_TAGS) {
+        return parser_unexpected_value;
+    }
+
+    return parser_printTag(&parser_tx_obj.tags[displayIdx],
+                            outKey, outKeyLen,
+                            outVal, outValLen,
+                            pageIdx, pageCount);
 }

@@ -32,10 +32,6 @@ const expected_address_string = 'ruH8xdwP4Y0rK3YpQOSO8pfmtao9sGi4HriXrg-5ZLg'
 
 jest.setTimeout(12000 * 1000)
 
-beforeAll(async () => {
-  await Zemu.checkAndPullImage()
-})
-
 describe('Address', function () {
   test.each(models)('Address Checks', async function (m) {
     const sim = new Zemu(m.path)
