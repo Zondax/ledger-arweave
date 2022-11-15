@@ -20,6 +20,7 @@
 #include <zxformat.h>
 #include "parser.h"
 #include "hexutils.h"
+#include "crypto_helper.h"
 
 extern "C" {
 #include "sha512.h"

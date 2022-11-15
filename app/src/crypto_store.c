@@ -29,7 +29,7 @@
 static uint8_t slot_in_use = KEY_SLOT_1;
 
 typedef struct {
-    uint8_t masterSeed[32];
+    uint8_t masterSeed[MASTERSEED_LEN];
     uint8_t pq[RSA_PRIME_LEN * 2];
     cx_rsa_4096_public_key_t rsa_pub;
     cx_rsa_4096_private_key_t rsa_priv;
@@ -116,7 +116,7 @@ zxerr_t crypto_deriveMasterSeed() {
                                                 masterSeed,
                                                 NULL, NULL, 0);
 
-            MEMCPY_NV((void*) &N_crypto_store[slot_in_use].masterSeed, masterSeed, 32);
+            MEMCPY_NV((void*) &N_crypto_store[slot_in_use].masterSeed, masterSeed, MASTERSEED_LEN);
         }
         CATCH_ALL
         {
@@ -158,7 +158,7 @@ bool same_masterseed(uint8_t slot) {
                                                 masterSeed,
                                                 NULL, NULL, 0);
 
-            same_seed = (MEMCMP((void*) &N_crypto_store[slot].masterSeed, masterSeed, 32) == 0);
+            same_seed = (MEMCMP((void*) &N_crypto_store[slot].masterSeed, masterSeed, MASTERSEED_LEN) == 0);
         }
         CATCH_ALL
         {
