@@ -14,10 +14,12 @@
     "Ledger"
   ],
   "scripts": {
+    "try": "node try.mjs",
     "test": "ts-node tests/pullImageKillOld.ts && jest -t 'Standard'",
     "testaddr": "ts-node tests/pullImageKillOld.ts && jest -t 'Address'"
   },
   "dependencies": {
+    "@ledgerhq/hw-transport-node-hid": "^6.27.1",
     "@zondax/ledger-arweave": "link:../js",
     "@zondax/zemu": "^0.34.0"
   },
