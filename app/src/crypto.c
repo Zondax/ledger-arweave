@@ -21,16 +21,7 @@
 #include "parser.h"
 #include "parser_common.h"
 #include "b64url.h"
-
-#if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 #include "crypto_store.h"
-
-void crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *out, unsigned int outLen) {
-    cx_sha512_t ctx;
-    cx_sha384_init(&ctx);
-    cx_hash(&ctx.header, CX_LAST, in, inLen, out, outLen);
-}
-
 #include "cx.h"
 
 zxerr_t crypto_getpubkey_part(uint8_t *buffer, uint16_t bufferLen, uint8_t index) {
@@ -63,25 +54,26 @@ zxerr_t crypto_sign(uint8_t *buffer, __Z_UNUSED uint16_t signatureMaxlen, __Z_UN
     if (!crypto_store_is_initialized()) {
         return zxerr_invalid_crypto_settings;
     }
-    uint8_t digest[SHA384_DIGEST_LEN];
 
+    if (signatureMaxlen < SHA384_DIGEST_LEN) {
+        return zxerr_buffer_too_small;
+    }
+
+    uint8_t digest[SHA384_DIGEST_LEN] = {0};
     parser_error_t prs = parser_getDigest(digest, SHA384_DIGEST_LEN);
     if(prs != parser_ok){
         return zxerr_unknown;
     }
 
-    MEMCPY(buffer,digest,SHA384_DIGEST_LEN);
-    uint8_t sig[RSA_MODULUS_LEN];
-    MEMZERO(sig,RSA_MODULUS_LEN);
+#ifdef APP_TESTING
+    return zxerr_ok;
+#endif
+
+    uint8_t sig[RSA_MODULUS_LEN] = {0};
 
     cx_rsa_4096_private_key_t *rsa_privkey = crypto_store_get_privkey();
-
-    uint8_t digestsmall[CX_SHA256_SIZE];
+    uint8_t digestsmall[CX_SHA256_SIZE] = {0};
     cx_hash_sha256(digest, SHA384_DIGEST_LEN, digestsmall, CX_SHA256_SIZE);
-
-    #ifdef APP_TESTING
-         return zxerr_ok;
-    #endif
 
     zxerr_t err = zxerr_ok;
     BEGIN_TRY
@@ -89,12 +81,7 @@ zxerr_t crypto_sign(uint8_t *buffer, __Z_UNUSED uint16_t signatureMaxlen, __Z_UN
         TRY
         {
             cx_rsa_sign((const cx_rsa_private_key_t *)rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA256, digestsmall, CX_SHA256_SIZE, sig, RSA_MODULUS_LEN);
-
             err = crypto_store_signature(sig);
-
-            if(err == zxerr_ok) {
-                MEMCPY(buffer, digest, SHA384_DIGEST_LEN);
-            }
         }
         CATCH_ALL
         {
@@ -107,7 +94,8 @@ zxerr_t crypto_sign(uint8_t *buffer, __Z_UNUSED uint16_t signatureMaxlen, __Z_UN
         }
     }
     END_TRY;
- 
+
+    MEMCPY(buffer, digest, SHA384_DIGEST_LEN);
     *sigSize = SHA384_DIGEST_LEN;
     return err;
 }
@@ -142,15 +130,3 @@ zxerr_t crypto_fillAddress(uint8_t *buffer, uint16_t buffer_len, uint16_t *addrL
     *addrLen = sizeof(answer_t) - sizeof_field(answer_t, padding);
     return zxerr_ok;
 }
-
-#else
-#include <sha512.h>
-
-void crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *out, unsigned int outLen) {
-    uint8_t tmp[64];
-    // This function requires a full 64 bytes context (sha512)
-    SHA384(in, inLen, tmp);
-    // We can later trim and return only 48
-    MEMCPY(out, tmp, 48);
-}
-#endif

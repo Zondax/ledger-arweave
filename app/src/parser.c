@@ -22,6 +22,7 @@
 #include "parser_txdef.h"
 #include "coin.h"
 #include "b64url.h"
+#include "crypto_helper.h"
 
 #if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 // For some reason NanoX requires this function
@@ -129,6 +130,9 @@ void parser_applyDigestTags(deepHash_t *dh) {
 }
 
 parser_error_t parser_getDigest(uint8_t *digest, uint16_t digestLen) {
+    if (digestLen < SHA384_DIGEST_LEN) {
+        return parser_unexpected_buffer_end;
+    }
     MEMZERO(digest, digestLen);
     deepHash_t ctx;
     MEMZERO(&ctx, sizeof(taggedHash_t));
@@ -148,7 +152,7 @@ parser_error_t parser_getDigest(uint8_t *digest, uint16_t digestLen) {
     hashChunkWithAccumulator(&ctx, parser_tx_obj.data_size.ptr, parser_tx_obj.data_size.len);
     hashChunkWithAccumulator(&ctx, parser_tx_obj.data_root.ptr, parser_tx_obj.data_root.len);
 
-    MEMCPY(digest, ctx.acc, 48);
+    MEMCPY(digest, ctx.acc, SHA384_DIGEST_LEN);
     return parser_ok;
 }
 
