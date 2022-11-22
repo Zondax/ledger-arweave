@@ -46,6 +46,7 @@ zxerr_t crypto_init_primes();
 zxerr_t crypto_init_keys();
 
 zxerr_t crypto_store_init();
+bool crypto_store_init_test();
 
 cx_rsa_4096_public_key_t* crypto_store_get_pubkey();
 cx_rsa_4096_private_key_t* crypto_store_get_privkey();
