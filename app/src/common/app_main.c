@@ -177,16 +177,19 @@ void app_init() {
 
     USB_power(0);
     USB_power(1);
-    view_idle_show(0, NULL);
+
+    if (!crypto_store_init_test()) {
+        view_initialize_init(crypto_store_init);
+        view_initialize_show(0, NULL);
+    } else {
+       view_idle_show(0,NULL);
+    }
 
 #ifdef HAVE_BLE
     // Enable Bluetooth
     BLE_power(0, NULL);
     BLE_power(1, "Nano X");
 #endif // HAVE_BLE
-
-    crypto_store_init();
-    view_idle_show(0, NULL);
 }
 
 #pragma clang diagnostic push
