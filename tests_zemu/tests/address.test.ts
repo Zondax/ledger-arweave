@@ -25,7 +25,7 @@ const defaultOptions = {
   custom: `-s "${APP_SEED}"`,
   X11: false,
   startTimeout: 10000 * 1000,
-  startText: 'Ready',
+  startText: 'Not Ready',
 }
 
 const expected_address_string = 'ruH8xdwP4Y0rK3YpQOSO8pfmtao9sGi4HriXrg-5ZLg'
@@ -41,17 +41,21 @@ describe('Address', function () {
 
       const app = new ArweaveApp(sim.getTransport())
 
+      // Run initialize
+      await sim.clickRight()
+      await sim.clickBoth()
+
       /*GET ADDRESS*/
       const get_resp = await app.getAddress()
-
       console.log(get_resp)
       expect(get_resp.returnCode).toEqual(0x9000)
       expect(get_resp.errorMessage).toEqual('No errors')
       expect(get_resp.address).toEqual(expected_address_string)
 
       /*SHOW ADDRESS*/
+      let currentScreen = sim.snapshot()
       const showRequest = app.showAddress()
-      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+      await sim.waitUntilScreenIsNot(currentScreen, 20000)
       await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-show_address`)
 
       const show_resp = await showRequest
@@ -62,8 +66,9 @@ describe('Address', function () {
       expect(show_resp.address).toEqual(expected_address_string)
 
       /*SHOW ADDRESS REJECT*/
+      currentScreen = sim.snapshot()
       const showExpertRequest = app.showAddress()
-      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+      await sim.waitUntilScreenIsNot(currentScreen, 20000)
       await sim.navigateAndCompareUntilText('.', `${m.prefix.toLowerCase()}-show_address_reject`, 'REJECT')
 
       const resp = await showExpertRequest
@@ -71,6 +76,7 @@ describe('Address', function () {
       console.log(resp)
       expect(resp.returnCode).toEqual(0x6986)
       expect(resp.errorMessage).toEqual('Transaction rejected')
+
     } finally {
       await sim.close()
     }
