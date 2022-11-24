@@ -325,6 +325,27 @@ zxerr_t crypto_store_init() {
     }
 }
 
+bool crypto_store_init_test() {
+#ifdef APP_TESTING
+    zemu_log_stack("-----");    
+    slot_in_use=KEY_SLOT_1;
+    SET_NV(&N_crypto_store[slot_in_use].initialized, uint8_t, true)
+    return true;
+#endif
+
+    if (!crypto_store_slot_is_initialized(KEY_SLOT_1)) {
+        return false;
+    } else if(same_masterseed(KEY_SLOT_1)) {
+        return true;
+    } else if (!crypto_store_slot_is_initialized(KEY_SLOT_2)) {
+         return false;
+    } else if (same_masterseed(KEY_SLOT_2)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 zxerr_t crypto_initialize_slot() {
     view_message_show("Arweave", "Initializing");
     UX_WAIT_DISPLAYED();
