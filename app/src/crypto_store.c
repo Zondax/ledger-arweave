@@ -234,11 +234,15 @@ zxerr_t crypto_init_primes() {
 
     view_message_show("Arweave", "Finding Pseed");
     UX_WAIT_DISPLAYED();
-    crypto_derivePrime(pq, 0);;
+    io_seproxyhal_io_heartbeat();
+    crypto_derivePrime(pq, 0);
+    io_seproxyhal_io_heartbeat();
 
     view_message_show("Arweave", "Finding Qseed");
     UX_WAIT_DISPLAYED();
-    crypto_derivePrime(pq + RSA_PRIME_LEN, 1);;
+    io_seproxyhal_io_heartbeat();
+    crypto_derivePrime(pq + RSA_PRIME_LEN, 1);
+    io_seproxyhal_io_heartbeat();
 
     *pq |= 0x80;
     *(pq + RSA_PRIME_LEN) |= 0x80;
@@ -246,11 +250,15 @@ zxerr_t crypto_init_primes() {
     // Obtain two prime numbers p, q inplace
     view_message_show("Arweave", "Finding P");
     UX_WAIT_DISPLAYED();
+    io_seproxyhal_io_heartbeat();
     cx_math_next_prime(pq, RSA_PRIME_LEN);
+    io_seproxyhal_io_heartbeat();
 
     view_message_show("Arweave", "Finding Q");
     UX_WAIT_DISPLAYED();
+    io_seproxyhal_io_heartbeat();
     cx_math_next_prime(pq + RSA_PRIME_LEN, RSA_PRIME_LEN);
+    io_seproxyhal_io_heartbeat();
     MEMCPY_NV((void *) &N_crypto_store[slot_in_use].pq, pq, RSA_PRIME_LEN * 2);
 
     return zxerr_ok;
