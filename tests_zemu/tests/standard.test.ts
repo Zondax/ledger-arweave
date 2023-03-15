@@ -18,7 +18,8 @@ import Zemu, { DEFAULT_START_OPTIONS } from '@zondax/zemu'
 import ArweaveApp from '@zondax/ledger-arweave'
 import { APP_SEED, models } from './common'
 
-const Arweave = require('arweave')
+import Arweave from 'arweave'
+import { CreateTransactionInterface } from 'arweave/node/common'
 
 const defaultOptions = {
   ...DEFAULT_START_OPTIONS,
@@ -36,7 +37,7 @@ const owner =
 jest.setTimeout(10 * 60000)
 
 describe('Standard', function () {
-  test.each(models)('can start and stop container', async function (m) {
+  test.concurrent.each(models)('can start and stop container', async function (m) {
     const sim = new Zemu(m.path)
     try {
       await sim.start({ ...defaultOptions, model: m.name })
@@ -45,7 +46,7 @@ describe('Standard', function () {
     }
   })
 
-  test.each(models)('main menu', async function (m) {
+  test.concurrent.each(models)('main menu', async function (m) {
     const sim = new Zemu(m.path)
     try {
       await sim.start({ ...defaultOptions, model: m.name })
@@ -55,7 +56,7 @@ describe('Standard', function () {
     }
   })
 
-  test.each(models)('get app version', async function (m) {
+  test.concurrent.each(models)('get app version', async function (m) {
     const sim = new Zemu(m.path)
     try {
       await sim.start({ ...defaultOptions, model: m.name })
@@ -84,11 +85,11 @@ describe('Standard', function () {
       logging: false, // Enable network request logging
     })
 
-    const transactionAttributes = {
+    const transactionAttributes: Partial<CreateTransactionInterface> = {
       target: '1seRanklLU_1VTGkEk7P0xAwMJfA7owA1JHW5KyZKlY',
       quantity: arweave.ar.arToWinston('10.5'),
       owner,
-      reward: 12345,
+      reward: '12345',
       last_tx: 'A9Ic6RPOCXrpU1OzSFah3GfyUrCnFlAZ53NjPGjkCjVDgbQ6T1SU8ArIYWevd2aj',
       data: enable_data ? '<html><head><meta charset="UTF-8"><title>Hello world!</title></head><body></body></html>' : '',
     }
@@ -123,7 +124,7 @@ describe('Standard', function () {
     }
   }
 
-  test.each(models)('fake tx', async function (m) {
+  test.concurrent.each(models)('fake tx', async function (m) {
     const exampleData = await getFakeTx(true, true)
     console.log(exampleData)
 
@@ -134,7 +135,7 @@ describe('Standard', function () {
     console.log(exampleData.transaction)
   })
 
-  test.each(models)('sign - transfer', async function (m) {
+  test.concurrent.each(models)('sign - transfer', async function (m) {
     const sim = new Zemu(m.path)
     try {
       await sim.start({ ...defaultOptions, model: m.name })
@@ -159,7 +160,7 @@ describe('Standard', function () {
     }
   })
 
-  test.each(models)('sign - transfer expert', async function (m) {
+  test.concurrent.each(models)('sign - transfer expert', async function (m) {
     const sim = new Zemu(m.path)
     try {
       await sim.start({ ...defaultOptions, model: m.name })
@@ -189,7 +190,7 @@ describe('Standard', function () {
     }
   })
 
-  test.each(models)('sign - no data transfer', async function (m) {
+  test.concurrent.each(models)('sign - no data transfer', async function (m) {
     const sim = new Zemu(m.path)
     try {
       await sim.start({ ...defaultOptions, model: m.name })
@@ -214,7 +215,7 @@ describe('Standard', function () {
     }
   })
 
-  test.each(models)('sign - no data transfer expert', async function (m) {
+  test.concurrent.each(models)('sign - no data transfer expert', async function (m) {
     const sim = new Zemu(m.path)
     try {
       await sim.start({ ...defaultOptions, model: m.name })
@@ -244,7 +245,7 @@ describe('Standard', function () {
     }
   })
 
-  test.each(models)('sign - no tags transfer', async function (m) {
+  test.concurrent.each(models)('sign - no tags transfer', async function (m) {
     const sim = new Zemu(m.path)
     try {
       await sim.start({ ...defaultOptions, model: m.name })
@@ -269,7 +270,7 @@ describe('Standard', function () {
     }
   })
 
-  test.each(models)('sign - no tags transfer expert', async function (m) {
+  test.concurrent.each(models)('sign - no tags transfer expert', async function (m) {
     const sim = new Zemu(m.path)
     try {
       await sim.start({ ...defaultOptions, model: m.name })
@@ -299,7 +300,7 @@ describe('Standard', function () {
     }
   })
 
-  test.each(models)('sign - basic transfer', async function (m) {
+  test.concurrent.each(models)('sign - basic transfer', async function (m) {
     const sim = new Zemu(m.path)
     try {
       await sim.start({ ...defaultOptions, model: m.name })
@@ -324,7 +325,7 @@ describe('Standard', function () {
     }
   })
 
-  test.each(models)('sign - basic transfer expert', async function (m) {
+  test.concurrent.each(models)('sign - basic transfer expert', async function (m) {
     const sim = new Zemu(m.path)
     try {
       await sim.start({ ...defaultOptions, model: m.name })

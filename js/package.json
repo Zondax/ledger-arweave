@@ -13,7 +13,7 @@
     "Javascript",
     "Arweave"
   ],
-  "author": "Zondax GmbH",
+  "author": "Zondax AG",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/zondax/ledger-arweave/issues"
@@ -21,7 +21,7 @@
   "homepage": "https://github.com/zondax/ledger-arweave",
   "dependencies": {
     "@babel/runtime": "^7.19.4",
-    "@ledgerhq/hw-transport": "^6.27.6",
+    "@ledgerhq/hw-transport": "^6.28.1",
     "arweave": "^1.11.6"
   },
   "devDependencies": {
@@ -33,17 +33,17 @@
     "@babel/preset-env": "^7.19.4",
     "@ledgerhq/hw-transport-node-hid": "^6.27.6",
     "babel-jest": "^29.2.0",
-    "bip32": "^3.1.0",
+    "bip32": "^4.0.0",
     "bip39": "^3.0.4",
     "core-js": "^3.25.5",
     "crypto-js": "4.1.1",
-    "eslint": "^8.25.0",
+    "eslint": "^8.31.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.24.2",
+    "eslint-plugin-import": "^2.26.0",
     "index.js": "^0.0.3",
     "jest": "^29.2.0",
     "jest-serial-runner": "^1.2.0",
-    "prettier": "^2.4.1"
+    "prettier": "^2.8.1"
   },
   "scripts": {
     "build": "babel src  --copy-files --out-dir dist"
