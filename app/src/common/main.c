@@ -15,6 +15,7 @@
 *  limitations under the License.
 ********************************************************************************/
 #include "app_main.h"
+#include "crypto_store.h"
 #include "view.h"
 
 #include <os_io_seproxyhal.h>
@@ -32,6 +33,12 @@ main(void) {
         TRY
         {
             app_init();
+            if (!crypto_store_init_test()) {
+                view_initialize_init(crypto_store_init);
+                view_initialize_show(0, NULL);
+            } else {
+               view_idle_show(0,NULL);
+            }
             app_main();
         }
         CATCH_OTHER(e)

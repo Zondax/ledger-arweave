@@ -157,7 +157,7 @@ export default class ArweaveApp {
       if (i > buffer.length) {
         end = buffer.length;
       }
-      chunks.push(buffer.slice(i, end));
+      chunks.push(buffer.subarray(i, end));
     }
     return chunks;
   }
@@ -254,7 +254,7 @@ export default class ArweaveApp {
       Buffer.from(req2.output),
       Buffer.from(req3.output),
     ]);
-    let owner = await Arweave.utils.bufferTob64Url(pk);
+    let owner = Arweave.utils.bufferTob64Url(pk);
 
     return {
       address: req1.address,
