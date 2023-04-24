@@ -32,7 +32,7 @@ const expected_address_string = 'ruH8xdwP4Y0rK3YpQOSO8pfmtao9sGi4HriXrg-5ZLg'
 jest.setTimeout(3600000) // 1h
 
 describe('Address', function () {
-  test.each(models)('Address Checks', async function (m) {
+  test.concurrent.each(models)('Address Checks', async function (m) {
     const sim = new Zemu(m.path)
 
     try {

@@ -24,10 +24,8 @@ MY_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
 include $(CURDIR)/../deps/ledger-zxlib/makefiles/Makefile.installer_script
 
-DEFINES       += HAVE_RSA
 include $(BOLOS_SDK)/Makefile.defines
 
-#DEFINES += APP_SECRET_MODE_ENABLED
 DEFINES += POSTPONE_MAIN_SCREEN_INIT
 
 $(info ************ TARGET_NAME  = [$(TARGET_NAME)])
@@ -46,7 +44,7 @@ ifeq ($(COIN),ARWEAVE)
 # Main app configuration
 DEFINES += APP_STANDARD
 APPNAME = "Arweave"
-APPPATH = "44'/472'"
+APPPATH = "44'/472'" --path "44'/1'"
 
 else
 define error_message
@@ -59,9 +57,12 @@ endef
 $(error "$(error_message)")
 endif
 
-APP_LOAD_PARAMS = --delete $(COMMON_LOAD_PARAMS) --path $(APPPATH) --path "44'/1'" --tlvraw 9F:01
+APP_LOAD_PARAMS = --curve ed25519 $(COMMON_LOAD_PARAMS) --path $(APPPATH)
+
+APP_LOAD_PARAMS += --tlvraw 9F:01
 DEFINES += HAVE_PENDING_REVIEW_SCREEN
 
+DEFINES += HAVE_RSA
 INCLUDES_PATH += $(BOLOS_SDK)/lib_cxng/src
 APP_SOURCE_FILES += $(BOLOS_SDK)/lib_cxng/src/cx_rsa.c
 APP_SOURCE_FILES += $(BOLOS_SDK)/lib_cxng/src/cx_pkcs1.c
@@ -88,15 +89,11 @@ endif
 include $(CURDIR)/../deps/ledger-zxlib/makefiles/Makefile.platform
 
 DEFINES += HAVE_HASH HAVE_BLAKE2 HAVE_SHA256 HAVE_SHA512
-CFLAGS += -Wvla  -Wno-implicit-fallthrough
 
 .PHONY: rust
 rust:
 	@echo "No rust code"
 #	cd rust && CARGO_HOME="$(CURDIR)/rust/.cargo" cargo build --target thumbv6m-none-eabi --release
-
-# Before linking, we need to be sure rust lib is there
-bin/app.elf: rust
 
 .PHONY: rust_clean
 rust_clean:
