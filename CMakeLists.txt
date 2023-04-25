@@ -146,9 +146,7 @@ if (ENABLE_FUZZING)
 
     foreach(target ${FUZZ_TARGETS})
         add_executable(fuzz-${target}
-                ${CMAKE_CURRENT_SOURCE_DIR}/fuzz/${target}.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/tests/utils/sha256.cpp)
-        target_include_directories(fuzz-${target} PUBLIC deps/PicoSHA2)
+                ${CMAKE_CURRENT_SOURCE_DIR}/fuzz/${target}.cpp)
         target_link_libraries(fuzz-${target} PRIVATE app_lib)
         target_link_options(fuzz-${target} PRIVATE "-fsanitize=fuzzer")
     endforeach()
