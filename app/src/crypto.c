@@ -24,8 +24,10 @@
 #include "crypto_store.h"
 #include "cx.h"
 
+#define MIN_BUFFER_LEN  256
+
 zxerr_t crypto_getpubkey_part(uint8_t *buffer, uint16_t bufferLen, uint8_t index) {
-    if (!crypto_store_is_initialized() || bufferLen < 256) {
+    if (!crypto_store_is_initialized() || bufferLen < MIN_BUFFER_LEN) {
         return zxerr_invalid_crypto_settings;
     }
 
@@ -38,7 +40,7 @@ zxerr_t crypto_getpubkey_part(uint8_t *buffer, uint16_t bufferLen, uint8_t index
 }
 
 zxerr_t crypto_getsignature_part(uint8_t *buffer, uint16_t bufferLen, uint8_t index) {
-    if (!is_sig_set() || bufferLen < 256) {
+    if (!is_sig_set() || bufferLen < MIN_BUFFER_LEN) {
         return zxerr_invalid_crypto_settings;
     }
 
@@ -50,7 +52,7 @@ zxerr_t crypto_getsignature_part(uint8_t *buffer, uint16_t bufferLen, uint8_t in
     return zxerr_ok;
 }
 
-zxerr_t crypto_sign(uint8_t *buffer, __Z_UNUSED uint16_t signatureMaxlen, __Z_UNUSED const uint8_t *message, __Z_UNUSED uint16_t messageLen, uint16_t *sigSize) {
+zxerr_t crypto_sign(uint8_t *buffer, __Z_UNUSED uint16_t signatureMaxlen, uint16_t *sigSize) {
     if (!crypto_store_is_initialized()) {
         return zxerr_invalid_crypto_settings;
     }
@@ -72,6 +74,9 @@ zxerr_t crypto_sign(uint8_t *buffer, __Z_UNUSED uint16_t signatureMaxlen, __Z_UN
     uint8_t sig[RSA_MODULUS_LEN] = {0};
 
     cx_rsa_4096_private_key_t *rsa_privkey = crypto_store_get_privkey();
+    if (rsa_privkey == NULL) {
+        return zxerr_invalid_crypto_settings;
+    }
     uint8_t digestsmall[CX_SHA256_SIZE] = {0};
     cx_hash_sha256(digest, SHA384_DIGEST_LEN, digestsmall, CX_SHA256_SIZE);
 
