@@ -32,13 +32,17 @@ const char b64url_charset[] = {
 };
 
 uint16_t b64url_encode(char *out, uint16_t outlen, const uint8_t *in, uint16_t inlen) {
+    if (out == NULL || in == NULL) {
+        return 0;
+    }
     MEMZERO(out, outlen);
 
-    // Check uppeer bound or bailout
-    uint16_t minspace = inlen / 6;
-    if (inlen % 6 != 0) minspace++;
-    minspace++; // zero termination
-    if (outlen < minspace) {
+    // Check upper bound or bailout
+    uint16_t minspace = inlen / 3;
+    if ((inlen % 3) != 0) minspace++;
+
+    const uint32_t minimumBufferSize = inlen + minspace;
+    if (minimumBufferSize > outlen) {
         return 0;
     }
 
@@ -67,14 +71,6 @@ uint16_t b64url_encode(char *out, uint16_t outlen, const uint8_t *in, uint16_t i
     // If there is any left over add and pad
     if (carry_count > 0) {
         out[out_idx++] = b64url_charset[carry_value << (6 - carry_count)];
-        while (carry_count < 6) {
-
-//
-// Arweave removes padding
-//            out[out_idx++] = BASE64_PADDING_CHAR;
-
-            carry_count += 2;
-        }
     }
 
     return out_idx;

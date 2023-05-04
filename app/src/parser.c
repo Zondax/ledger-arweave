@@ -157,9 +157,16 @@ parser_error_t parser_getNumItems(const parser_context_t *ctx, uint8_t *num_item
 parser_error_t parser_printTarget(const parser_element_t *v,
                                   char *outVal, uint16_t outValLen,
                                   uint8_t pageIdx, uint8_t *pageCount) {
+
+    if (v == NULL || outVal == NULL) {
+        return parser_unexpected_error;
+    }
+
+    char uibuffer[200] = {0};
     MEMZERO(outVal, outValLen);
-    char uibuffer[200];
-    b64url_encode(uibuffer, sizeof(uibuffer), v->ptr, v->len);
+    if (b64url_encode(uibuffer, sizeof(uibuffer), v->ptr, v->len) == 0) {
+        return parser_unexpected_buffer_end;
+    }
 
     pageString(outVal, outValLen, uibuffer, pageIdx, pageCount);
     return parser_ok;
@@ -172,9 +179,11 @@ parser_error_t parser_printQuantity(const parser_element_t *c,
                                    const char prefix[],
                                    char *outValue, uint16_t outValueLen,
                                    uint8_t pageIdx, uint8_t *pageCount) {
-    char bufferUI[200];
+    char bufferUI[200] = {0};
+    if (c == NULL || c->len >= sizeof(bufferUI)) {
+        return parser_unexpected_error;
+    }
     MEMZERO(outValue, outValueLen);
-    MEMZERO(bufferUI, sizeof(bufferUI));
     *pageCount = 1;
 
     MEMCPY(bufferUI, c->ptr, c->len);
@@ -200,15 +209,12 @@ parser_error_t parser_printQuantity(const parser_element_t *c,
 parser_error_t parser_printSize(const parser_element_t *v,
                                     char *outVal, uint16_t outValLen,
                                     uint8_t pageIdx, uint8_t *pageCount) {
-    MEMZERO(outVal, outValLen);
 
-    char uibuffer[200];
-    MEMZERO(uibuffer, sizeof(uibuffer));
-
-    if (v->len > sizeof(uibuffer) - 1) {
-        return parser_unexpected_buffer_end;
+    char uibuffer[200] = {0};
+    if(v == NULL || outVal == NULL || v->len >= sizeof(uibuffer)) {
+        return parser_unexpected_error;
     }
-
+    MEMZERO(outVal, outValLen);
     MEMCPY(uibuffer, v->ptr, v->len);
     pageString(outVal, outValLen, uibuffer, pageIdx, pageCount);
     return parser_ok;
