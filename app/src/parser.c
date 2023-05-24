@@ -24,13 +24,6 @@
 #include "b64url.h"
 #include "crypto_helper.h"
 
-#if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
-// For some reason NanoX requires this function
-void __assert_fail(__Z_UNUSED const char * assertion, __Z_UNUSED const char * file, __Z_UNUSED unsigned int line, __Z_UNUSED const char * function){
-    while(1) {};
-}
-#endif
-
 parser_error_t parser_parse(parser_context_t *ctx, const uint8_t *data, size_t dataLen) {
     if (dataLen < 1) {
         return parser_no_data;
@@ -72,7 +65,7 @@ typedef union {
     uint8_t pair[96];
 } deepHash_t;
 
-void hashTag(uint8_t hashResult[48], char *tagName, uint16_t tagNumber) {
+void hashTag(uint8_t hashResult[48], const char *tagName, uint16_t tagNumber) {
     uint8_t tagBuffer[50];
     MEMZERO(tagBuffer, sizeof(tagBuffer));
     snprintf((char *) tagBuffer, sizeof(tagBuffer), "%s%d", tagName, tagNumber);
@@ -164,9 +157,16 @@ parser_error_t parser_getNumItems(const parser_context_t *ctx, uint8_t *num_item
 parser_error_t parser_printTarget(const parser_element_t *v,
                                   char *outVal, uint16_t outValLen,
                                   uint8_t pageIdx, uint8_t *pageCount) {
+
+    if (v == NULL || outVal == NULL) {
+        return parser_unexpected_error;
+    }
+
+    char uibuffer[200] = {0};
     MEMZERO(outVal, outValLen);
-    char uibuffer[200];
-    b64url_encode(uibuffer, sizeof(uibuffer), v->ptr, v->len);
+    if (b64url_encode(uibuffer, sizeof(uibuffer), v->ptr, v->len) == 0) {
+        return parser_unexpected_buffer_end;
+    }
 
     pageString(outVal, outValLen, uibuffer, pageIdx, pageCount);
     return parser_ok;
@@ -175,13 +175,15 @@ parser_error_t parser_printTarget(const parser_element_t *v,
 parser_error_t parser_printQuantity(const parser_element_t *c,
                                    uint8_t decimalPlaces,
                                    bool trimTrailingZeros,
-                                   char postfix[],
-                                   char prefix[],
+                                   const char postfix[],
+                                   const char prefix[],
                                    char *outValue, uint16_t outValueLen,
                                    uint8_t pageIdx, uint8_t *pageCount) {
-    char bufferUI[200];
+    char bufferUI[200] = {0};
+    if (c == NULL || c->len >= sizeof(bufferUI)) {
+        return parser_unexpected_error;
+    }
     MEMZERO(outValue, outValueLen);
-    MEMZERO(bufferUI, sizeof(bufferUI));
     *pageCount = 1;
 
     MEMCPY(bufferUI, c->ptr, c->len);
@@ -207,15 +209,12 @@ parser_error_t parser_printQuantity(const parser_element_t *c,
 parser_error_t parser_printSize(const parser_element_t *v,
                                     char *outVal, uint16_t outValLen,
                                     uint8_t pageIdx, uint8_t *pageCount) {
-    MEMZERO(outVal, outValLen);
 
-    char uibuffer[200];
-    MEMZERO(uibuffer, sizeof(uibuffer));
-
-    if (v->len > sizeof(uibuffer) - 1) {
-        return parser_unexpected_buffer_end;
+    char uibuffer[200] = {0};
+    if(v == NULL || outVal == NULL || v->len >= sizeof(uibuffer)) {
+        return parser_unexpected_error;
     }
-
+    MEMZERO(outVal, outValLen);
     MEMCPY(uibuffer, v->ptr, v->len);
     pageString(outVal, outValLen, uibuffer, pageIdx, pageCount);
     return parser_ok;

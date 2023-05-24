@@ -167,9 +167,7 @@ describe('Standard', function () {
       const app = new ArweaveApp(sim.getTransport())
 
       // Enable expert mode
-      await sim.clickRight()
-      await sim.clickBoth()
-      await sim.clickLeft()
+      await sim.toggleExpertMode()
 
       const exampleData = await getFakeTx(true, true)
       console.log(exampleData)
@@ -222,9 +220,7 @@ describe('Standard', function () {
       const app = new ArweaveApp(sim.getTransport())
 
       // Enable expert mode
-      await sim.clickRight()
-      await sim.clickBoth()
-      await sim.clickLeft()
+      await sim.toggleExpertMode()
 
       const exampleData = await getFakeTx(false, true)
       console.log(exampleData)
@@ -277,9 +273,7 @@ describe('Standard', function () {
       const app = new ArweaveApp(sim.getTransport())
 
       // Enable expert mode
-      await sim.clickRight()
-      await sim.clickBoth()
-      await sim.clickLeft()
+      await sim.toggleExpertMode()
 
       const exampleData = await getFakeTx(true, false)
       console.log(exampleData)
@@ -332,9 +326,7 @@ describe('Standard', function () {
       const app = new ArweaveApp(sim.getTransport())
 
       // Enable expert mode
-      await sim.clickRight()
-      await sim.clickBoth()
-      await sim.clickLeft()
+      await sim.toggleExpertMode()
 
       const exampleData = await getFakeTx(false, false)
       console.log(exampleData)

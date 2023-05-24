@@ -28,6 +28,7 @@ bool TestcaseIsValid(const Json::Value &) {
 
 template<typename S, typename... Args>
 void addTo(std::vector<std::string> &answer, const S &format_str, Args &&... args) {
+    (void)format_str;
     answer.push_back(args...);
 }
 

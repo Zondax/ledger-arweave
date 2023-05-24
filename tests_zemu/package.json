@@ -16,13 +16,13 @@
   "scripts": {
     "try": "node try.mjs",
     "clean": "ts-node tests/pullImageKillOld.ts",
-    "test": "yarn clean && jest -t 'Standard'",
-    "testaddr": "yarn clean && jest -t 'Address'"
+    "test": "yarn clean && jest tests/standard.test.ts",
+    "testaddr": "yarn clean && jest tests/address.test.ts"
   },
   "dependencies": {
     "@ledgerhq/hw-transport-node-hid": "^6.27.1",
     "@zondax/ledger-arweave": "link:../js",
-    "@zondax/zemu": "^0.36.0"
+    "@zondax/zemu": "^0.41.3"
   },
   "devDependencies": {
     "@types/jest": "^29.2.2",

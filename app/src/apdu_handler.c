@@ -49,19 +49,19 @@ static bool process_chunk(volatile uint32_t *tx, uint32_t rx) {
 
     uint32_t added;
     switch (payloadType) {
-        case 0:
+        case P1_INIT:
             tx_initialize();
             tx_reset();
             tx_initialized = true;
             return false;
-        case 1:
+        case P1_ADD:
             added = tx_append(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA);
             if (added != rx - OFFSET_DATA) {
                 tx_initialized = false;
                 THROW(APDU_CODE_OUTPUT_BUFFER_TOO_SMALL);
             }
             return false;
-        case 2:
+        case P1_LAST:
             if (!tx_initialized) {
                 THROW(APDU_CODE_TX_NOT_INITIALIZED);
             }
@@ -98,12 +98,8 @@ __Z_INLINE void handle_getversion(volatile uint32_t *flags, volatile uint32_t *t
     THROW(APDU_CODE_OK);
 }
 
-__Z_INLINE void handleGetAddress(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleGetAddress(volatile uint32_t *flags, volatile uint32_t *tx, __Z_UNUSED uint32_t rx) {
     *tx = 0;
-    if(rx < APDU_MIN_LENGTH){
-        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
-    }
-
     if(G_io_apdu_buffer[OFFSET_DATA_LEN] != 0){
         THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
     }
@@ -130,12 +126,8 @@ __Z_INLINE void handleGetAddress(volatile uint32_t *flags, volatile uint32_t *tx
     }
 }
 
-__Z_INLINE void handleGetPubKeyPart(__Z_UNUSED volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleGetPubKeyPart(__Z_UNUSED volatile uint32_t *flags, volatile uint32_t *tx, __Z_UNUSED uint32_t rx) {
     *tx = 0;
-    if(rx < APDU_MIN_LENGTH){
-        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
-    }
-
     if(G_io_apdu_buffer[OFFSET_DATA_LEN] != 0){
         THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
     }
@@ -153,12 +145,8 @@ __Z_INLINE void handleGetPubKeyPart(__Z_UNUSED volatile uint32_t *flags, volatil
 }
 
 
-__Z_INLINE void handleGetSigPart(__Z_UNUSED volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleGetSigPart(__Z_UNUSED volatile uint32_t *flags, volatile uint32_t *tx, __Z_UNUSED uint32_t rx) {
     *tx = 0;
-    if(rx < APDU_MIN_LENGTH){
-        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
-    }
-
     if(G_io_apdu_buffer[OFFSET_DATA_LEN] != 0){
         THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
     }
@@ -178,6 +166,7 @@ __Z_INLINE void handleGetSigPart(__Z_UNUSED volatile uint32_t *flags, volatile u
 
 
 __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+    // Wait until all chunks are processed
     if (!process_chunk(tx, rx)) {
         THROW(APDU_CODE_OK);
     }
@@ -220,33 +209,25 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                 }
 
                 case INS_GET_ADDR: {
-                    if( os_global_pin_is_validated() != BOLOS_UX_OK ) {
-                        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
-                    }
+                    CHECK_PIN_VALIDATED()
                     handleGetAddress(flags, tx, rx);
                     break;
                 }
 
                 case INS_SIGN: {
-                    if( os_global_pin_is_validated() != BOLOS_UX_OK ) {
-                        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
-                    }
+                    CHECK_PIN_VALIDATED()
                     handleSign(flags, tx, rx);
                     break;
                 }
 
                 case INS_GET_SIG: {
-                    if( os_global_pin_is_validated() != BOLOS_UX_OK ) {
-                        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
-                    }
+                    CHECK_PIN_VALIDATED()
                     handleGetSigPart(flags, tx, rx);
                     break;
                 }
 
                 case INS_GET_PK: {
-                    if( os_global_pin_is_validated() != BOLOS_UX_OK ) {
-                        THROW(APDU_CODE_COMMAND_NOT_ALLOWED);
-                    }
+                    CHECK_PIN_VALIDATED()
                     handleGetPubKeyPart(flags, tx, rx);
                     break;
                 }
@@ -271,7 +252,7 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                     break;
             }
             G_io_apdu_buffer[*tx] = sw >> 8;
-            G_io_apdu_buffer[*tx + 1] = sw;
+            G_io_apdu_buffer[*tx + 1] = sw & 0xFF;
             *tx += 2;
         }
         FINALLY

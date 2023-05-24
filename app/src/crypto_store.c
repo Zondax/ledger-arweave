@@ -33,7 +33,7 @@ typedef struct {
     uint8_t pq[RSA_PRIME_LEN * 2];
     cx_rsa_4096_public_key_t rsa_pub;
     cx_rsa_4096_private_key_t rsa_priv;
-    uint8_t initialized;
+    bool initialized;
 } crypto_store_t[2];
 
 crypto_store_t NV_CONST
@@ -48,8 +48,14 @@ crypto_sig_t NV_CONST
 N_crypto_sig_impl __attribute__ ((aligned(64)));
 #define N_crypto_sig (*(NV_VOLATILE crypto_sig_t *)PIC(&N_crypto_sig_impl))
 
-uint8_t signature_set;
+uint8_t signature_set = 0;
 
+typedef struct {
+    union {
+        cx_rsa_4096_private_key_t rsa_priv;
+        uint8_t pq[RSA_PRIME_LEN * 2];
+    };
+} zeroes;
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -69,6 +75,9 @@ zxerr_t crypto_signature_part(uint8_t *sig, uint8_t index){
     if (signature_set != 1){
         return zxerr_invalid_crypto_settings;
     }
+    if (index > 1) {
+        return zxerr_out_of_bounds;
+    }
     uint8_t *start = (uint8_t *)&N_crypto_sig[slot_in_use].sig;
     MEMCPY(sig, start + index*RSA_MODULUS_HALVE, RSA_MODULUS_HALVE);
     if (index == 1){
@@ -84,11 +93,14 @@ zxerr_t crypto_pubkey_part(uint8_t *key, uint8_t index){
     if (!crypto_store_is_initialized()){
         return zxerr_invalid_crypto_settings;
     }
+    if (index > 1) {
+        return zxerr_out_of_bounds;
+    }
     cx_rsa_4096_public_key_t *rsa_pubkey = crypto_store_get_pubkey();
-    uint8_t *start = rsa_pubkey->n;
-    if(start == NULL) {
+    if (rsa_pubkey == NULL) {
         return zxerr_invalid_crypto_settings;
     }
+    const uint8_t *start = rsa_pubkey->n;
 
     MEMCPY(key, start + index*RSA_MODULUS_HALVE, RSA_MODULUS_HALVE);
     return zxerr_ok;
@@ -105,7 +117,7 @@ zxerr_t crypto_deriveMasterSeed() {
             0x80000000u
     };
 
-    zxerr_t err = zxerr_ok;
+    zxerr_t err = zxerr_unknown;
     BEGIN_TRY
     {
         TRY
@@ -117,6 +129,7 @@ zxerr_t crypto_deriveMasterSeed() {
                                                 NULL, NULL, 0);
 
             MEMCPY_NV((void*) &N_crypto_store[slot_in_use].masterSeed, masterSeed, MASTERSEED_LEN);
+            err = zxerr_ok;
         }
         CATCH_ALL
         {
@@ -182,19 +195,19 @@ zxerr_t crypto_derivePrime(uint8_t *prime, uint8_t index) {
 
     //initialization of data to be hashed
     //Data: 0 || PRIME_INDEX (0 or 1) || MASTERSEED (32 bytes) || INDEX (0 - 255)
-    MEMCPY(data, data_index, 2);
-    MEMCPY(data + 2, (void*) &N_crypto_store[slot_in_use].masterSeed, sizeof(N_crypto_store[slot_in_use].masterSeed));
+    MEMCPY(data, data_index, sizeof(data_index));
+    MEMCPY(data + sizeof(data_index), (void*) &N_crypto_store[slot_in_use].masterSeed, sizeof(N_crypto_store[slot_in_use].masterSeed));
 
-    uint16_t index_location = 2 + sizeof(N_crypto_store[slot_in_use].masterSeed);
+    const uint16_t index_location = sizeof(data_index) + sizeof(N_crypto_store[slot_in_use].masterSeed);
 
     //Number of times we need to hash: RSA_PRIME_LEN * 8 bits / 256 bits
-    uint16_t num_hashes = (RSA_PRIME_LEN*8)/256;
+    const uint16_t num_hashes = (RSA_PRIME_LEN*8)/256;
     if(num_hashes > 255){
         return zxerr_buffer_too_small;
     }
 
     //We can have a remainder of a few bytes if not divisible by 32 bytes
-    uint16_t remainder = (RSA_PRIME_LEN*8) % 256;
+    const uint16_t remainder = (RSA_PRIME_LEN*8) % 256;
 
     uint8_t hash_index = 0;
     // Fill the random bytes of the prime
@@ -205,10 +218,10 @@ zxerr_t crypto_derivePrime(uint8_t *prime, uint8_t index) {
 
     // Fill the remainder bytes of the prime
     if (remainder > 0){
-        uint8_t final_hash[CX_SHA256_SIZE];
+        uint8_t final_hash[CX_SHA256_SIZE] = {0};
         data[index_location] = hash_index;
         cx_hash_sha256(data, sizeof(data), final_hash, CX_SHA256_SIZE);\
-        MEMCPY(prime, final_hash, remainder / 8);
+        MEMCPY(prime, final_hash, remainder / 8 + 1);
     }
 
     zemu_log_stack("derivePrime::done");
@@ -230,7 +243,7 @@ bool crypto_store_is_initialized() {
 zxerr_t crypto_init_primes() {
     zemu_log_stack("initPrimes");
 
-    uint8_t pq[RSA_PRIME_LEN * 2];
+    uint8_t pq[RSA_PRIME_LEN * 2] = {0};
 
     view_message_show("Arweave", "Finding Pseed");
     UX_WAIT_DISPLAYED();
@@ -260,6 +273,7 @@ zxerr_t crypto_init_primes() {
     cx_math_next_prime(pq + RSA_PRIME_LEN, RSA_PRIME_LEN);
     io_seproxyhal_io_heartbeat();
     MEMCPY_NV((void *) &N_crypto_store[slot_in_use].pq, pq, RSA_PRIME_LEN * 2);
+    MEMZERO(pq, sizeof(pq));
 
     return zxerr_ok;
 }
@@ -284,19 +298,27 @@ zxerr_t crypto_init_keys() {
     SET_NV((void *)&N_crypto_store[slot_in_use].initialized, uint8_t, true)
     MEMCPY_NV((void *)&N_crypto_store[slot_in_use].rsa_pub, &rsa_pub, sizeof(rsa_pub));
     MEMCPY_NV((void *)&N_crypto_store[slot_in_use].rsa_priv, &rsa_priv, sizeof(rsa_priv));
+    MEMZERO(&rsa_priv, sizeof(rsa_priv));
 
     return zxerr_ok;
 }
 
 zxerr_t crypto_uninitialized_slot(uint8_t slot) {
-        uint8_t clean_init=0x00;
-        uint8_t clean_seed[MASTERSEED_LEN];
+    if (slot > 1) {
+        return zxerr_out_of_bounds;
+    }
 
-        MEMZERO(clean_seed, MASTERSEED_LEN);
-        MEMCPY_NV((void *)&N_crypto_store[slot].masterSeed, &clean_seed, MASTERSEED_LEN);
-        MEMCPY_NV((void *)&N_crypto_store[slot].initialized, &clean_init, sizeof(clean_init));
+    uint8_t clean_init = 0x00;
+    uint8_t clean_seed[MASTERSEED_LEN] = {0};
 
-        return zxerr_ok;
+    zeroes tmp = {0};
+    MEMCPY_NV((void *)&N_crypto_store[slot].pq, &tmp.pq, sizeof(tmp.pq));
+    MEMCPY_NV((void *)&N_crypto_store[slot].rsa_priv, &tmp.rsa_priv, sizeof(tmp.rsa_priv));
+
+    MEMCPY_NV((void *)&N_crypto_store[slot].masterSeed, &clean_seed, MASTERSEED_LEN);
+    MEMCPY_NV((void *)&N_crypto_store[slot].initialized, &clean_init, sizeof(clean_init));
+
+    return zxerr_ok;
 }
 
 zxerr_t crypto_store_init() {
