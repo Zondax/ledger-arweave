@@ -220,7 +220,7 @@ zxerr_t crypto_derivePrime(uint8_t *prime, uint8_t index) {
     if (remainder > 0){
         uint8_t final_hash[CX_SHA256_SIZE] = {0};
         data[index_location] = hash_index;
-        cx_hash_sha256(data, sizeof(data), final_hash, CX_SHA256_SIZE);\
+        cx_hash_sha256(data, sizeof(data), final_hash, CX_SHA256_SIZE);
         MEMCPY(prime, final_hash, remainder / 8 + 1);
     }
 
@@ -247,35 +247,48 @@ zxerr_t crypto_init_primes() {
 
     view_message_show("Arweave", "Finding Pseed");
     UX_WAIT_DISPLAYED();
-    io_seproxyhal_io_heartbeat();
-    crypto_derivePrime(pq, 0);
-    io_seproxyhal_io_heartbeat();
 
-    view_message_show("Arweave", "Finding Qseed");
-    UX_WAIT_DISPLAYED();
-    io_seproxyhal_io_heartbeat();
-    crypto_derivePrime(pq + RSA_PRIME_LEN, 1);
-    io_seproxyhal_io_heartbeat();
+    volatile zxerr_t err = zxerr_unknown;
+    BEGIN_TRY {
+        TRY {
+            io_seproxyhal_io_heartbeat();
+            crypto_derivePrime(pq, 0);
+            io_seproxyhal_io_heartbeat();
 
-    *pq |= 0x80;
-    *(pq + RSA_PRIME_LEN) |= 0x80;
+            view_message_show("Arweave", "Finding Qseed");
+            UX_WAIT_DISPLAYED();
+            io_seproxyhal_io_heartbeat();
+            crypto_derivePrime(pq + RSA_PRIME_LEN, 1);
+            io_seproxyhal_io_heartbeat();
 
-    // Obtain two prime numbers p, q inplace
-    view_message_show("Arweave", "Finding P");
-    UX_WAIT_DISPLAYED();
-    io_seproxyhal_io_heartbeat();
-    cx_math_next_prime(pq, RSA_PRIME_LEN);
-    io_seproxyhal_io_heartbeat();
+            *pq |= 0x80;
+            *(pq + RSA_PRIME_LEN) |= 0x80;
 
-    view_message_show("Arweave", "Finding Q");
-    UX_WAIT_DISPLAYED();
-    io_seproxyhal_io_heartbeat();
-    cx_math_next_prime(pq + RSA_PRIME_LEN, RSA_PRIME_LEN);
-    io_seproxyhal_io_heartbeat();
-    MEMCPY_NV((void *) &N_crypto_store[slot_in_use].pq, pq, RSA_PRIME_LEN * 2);
-    MEMZERO(pq, sizeof(pq));
+            // Obtain two prime numbers p, q inplace
+            view_message_show("Arweave", "Finding P");
+            UX_WAIT_DISPLAYED();
+            io_seproxyhal_io_heartbeat();
+            cx_math_next_prime(pq, RSA_PRIME_LEN);
+            io_seproxyhal_io_heartbeat();
 
-    return zxerr_ok;
+            view_message_show("Arweave", "Finding Q");
+            UX_WAIT_DISPLAYED();
+            io_seproxyhal_io_heartbeat();
+            cx_math_next_prime(pq + RSA_PRIME_LEN, RSA_PRIME_LEN);
+            io_seproxyhal_io_heartbeat();
+            MEMCPY_NV((void *) &N_crypto_store[slot_in_use].pq, pq, RSA_PRIME_LEN * 2);
+            err = zxerr_ok;
+        }
+        CATCH_ALL {
+            err = zxerr_unknown;
+        }
+        FINALLY {
+            MEMZERO(pq, sizeof(pq));
+        }
+    }
+    END_TRY;
+
+    return err;
 }
 
 zxerr_t crypto_init_keys() {
