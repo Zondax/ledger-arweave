@@ -80,29 +80,20 @@ zxerr_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, uint16_t *sigSize
     uint8_t digestsmall[CX_SHA256_SIZE] = {0};
     cx_hash_sha256(digest, SHA384_DIGEST_LEN, digestsmall, CX_SHA256_SIZE);
 
-    zxerr_t err = zxerr_ok;
-    BEGIN_TRY
-    {
-        TRY
-        {
-            cx_rsa_sign((const cx_rsa_private_key_t *)rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA256, digestsmall, CX_SHA256_SIZE, sig, RSA_MODULUS_LEN);
-            err = crypto_store_signature(sig);
-        }
-        CATCH_ALL
-        {
-            err = zxerr_unknown;
-        }
-        FINALLY
-        {
-            rsa_privkey = NULL;
-            MEMZERO(sig, RSA_MODULUS_LEN);
-        }
-    }
-    END_TRY;
+    zxerr_t error = zxerr_unknown;
 
-    MEMCPY(buffer, digest, SHA384_DIGEST_LEN);
-    *sigSize = SHA384_DIGEST_LEN;
-    return err;
+    CATCH_CXERROR(cx_rsa_sign_no_throw((const cx_rsa_private_key_t *)rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA256, digestsmall, CX_SHA256_SIZE, sig, RSA_MODULUS_LEN))
+    error = crypto_store_signature(sig);
+
+catch_cx_error:
+    rsa_privkey = NULL;
+    MEMZERO(sig, RSA_MODULUS_LEN);
+
+    if (error == zxerr_ok) {
+        MEMCPY(buffer, digest, SHA384_DIGEST_LEN);
+        *sigSize = SHA384_DIGEST_LEN;
+    }
+    return error;
 }
 
 typedef struct {
@@ -127,11 +118,16 @@ zxerr_t crypto_fillAddress(uint8_t *buffer, uint16_t buffer_len, uint16_t *addrL
     }
 
     uint8_t hash_pubkey[CX_SHA256_SIZE];
-    cx_hash_sha256(rsa_pubkey->n, rsa_pubkey->size, hash_pubkey, CX_SHA256_SIZE);
+    if (cx_hash_sha256(rsa_pubkey->n, rsa_pubkey->size, hash_pubkey, CX_SHA256_SIZE) != CX_SHA256_SIZE) {
+        return zxerr_unknown;
+    }
 
     answer_t *const answer = (answer_t *) buffer;
 
-    b64url_encode(answer->addrStr, sizeof_field(answer_t, addrStr), hash_pubkey, CX_SHA256_SIZE);
+    if (b64url_encode(answer->addrStr, sizeof_field(answer_t, addrStr), hash_pubkey, CX_SHA256_SIZE) == 0) {
+        MEMZERO(buffer, buffer_len);
+        return zxerr_unknown;
+    }
     *addrLen = sizeof(answer_t) - sizeof_field(answer_t, padding);
     return zxerr_ok;
 }

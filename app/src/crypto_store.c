@@ -119,33 +119,21 @@ zxerr_t crypto_deriveMasterSeed() {
             0x80000000u
     };
 
-    zxerr_t err = zxerr_unknown;
-    BEGIN_TRY
-    {
-        TRY
-        {
-            os_perso_derive_node_bip32_seed_key(HDW_NORMAL,
-                                                CX_CURVE_Ed25519,
-                                                master_path, HDPATH_LEN_DEFAULT,
-                                                masterSeed,
-                                                NULL, NULL, 0);
+    zxerr_t error = zxerr_unknown;
 
-            MEMCPY_NV((void*) &N_crypto_store[slot_in_use].masterSeed, masterSeed, MASTERSEED_LEN);
-            err = zxerr_ok;
-        }
-        CATCH_ALL
-        {
-            err = zxerr_unknown;
-        }
-        FINALLY
-        {
-            MEMZERO(&masterSeed, 64);
-        }
-    }
-    END_TRY;
+    // Generate keys
+    CATCH_CXERROR(os_derive_bip32_with_seed_no_throw(HDW_NORMAL,
+                                                     CX_CURVE_Ed25519,
+                                                     master_path, HDPATH_LEN_DEFAULT,
+                                                     masterSeed,
+                                                     NULL, NULL, 0))
+    MEMCPY_NV((void*) &N_crypto_store[slot_in_use].masterSeed, masterSeed, MASTERSEED_LEN);
+    error = zxerr_ok;
 
+catch_cx_error:
+    MEMZERO(&masterSeed, sizeof(masterSeed));
 
-    return err;
+    return error;
 }
 
 bool same_masterseed(uint8_t slot) {
@@ -158,34 +146,22 @@ bool same_masterseed(uint8_t slot) {
             0x80000000u
     };
 
-    if (slot >= 2){
-        return zxerr_invalid_crypto_settings;
+    if (slot > 1) {
+        return false;
     }
 
     bool same_seed = false;
-    BEGIN_TRY
-    {
-        TRY
-        {
-            os_perso_derive_node_bip32_seed_key(HDW_NORMAL,
-                                                CX_CURVE_Ed25519,
-                                                master_path, HDPATH_LEN_DEFAULT,
-                                                masterSeed,
-                                                NULL, NULL, 0);
+    // Generate keys
+    CATCH_CXERROR(os_derive_bip32_with_seed_no_throw(HDW_NORMAL,
+                                                     CX_CURVE_Ed25519,
+                                                     master_path, HDPATH_LEN_DEFAULT,
+                                                     masterSeed,
+                                                     NULL, NULL, 0))
 
-            same_seed = (MEMCMP((void*) &N_crypto_store[slot].masterSeed, masterSeed, MASTERSEED_LEN) == 0);
-        }
-        CATCH_ALL
-        {
-            same_seed = false;
-        }
-        FINALLY
-        {
-            MEMZERO(&masterSeed, 64);
-        }
-    }
-    END_TRY;
+    same_seed = (MEMCMP((void*) &N_crypto_store[slot].masterSeed, masterSeed, MASTERSEED_LEN) == 0);
 
+catch_cx_error:
+    MEMZERO(&masterSeed, sizeof(masterSeed));
 
     return same_seed;
 }
@@ -215,14 +191,18 @@ zxerr_t crypto_derivePrime(uint8_t *prime, uint8_t index) {
     // Fill the random bytes of the prime
     for(;hash_index < num_hashes; hash_index ++, prime += 32){
         data[index_location] = hash_index;
-        cx_hash_sha256(data, sizeof(data), prime, CX_SHA256_SIZE);
+        if (cx_hash_sha256(data, sizeof(data), prime, CX_SHA256_SIZE) != CX_SHA256_SIZE) {
+            return zxerr_unknown;
+        }
     }
 
     // Fill the remainder bytes of the prime
     if (remainder > 0){
         uint8_t final_hash[CX_SHA256_SIZE] = {0};
         data[index_location] = hash_index;
-        cx_hash_sha256(data, sizeof(data), final_hash, CX_SHA256_SIZE);
+        if (cx_hash_sha256(data, sizeof(data), final_hash, CX_SHA256_SIZE) != CX_SHA256_SIZE) {
+            return zxerr_unknown;
+        }
         MEMCPY(prime, final_hash, remainder / 8 + 1);
     }
 
@@ -254,13 +234,17 @@ zxerr_t crypto_init_primes() {
     BEGIN_TRY {
         TRY {
             io_seproxyhal_io_heartbeat();
-            crypto_derivePrime(pq, 0);
+            if (crypto_derivePrime(pq, 0) != zxerr_ok) {
+                THROW(APDU_CODE_EXECUTION_ERROR);
+            }
             io_seproxyhal_io_heartbeat();
 
             view_message_show("Arweave", "Finding Qseed");
             UX_WAIT_DISPLAYED();
             io_seproxyhal_io_heartbeat();
-            crypto_derivePrime(pq + RSA_PRIME_LEN, 1);
+            if (crypto_derivePrime(pq + RSA_PRIME_LEN, 1) != zxerr_ok) {
+                THROW(APDU_CODE_EXECUTION_ERROR);
+            }
             io_seproxyhal_io_heartbeat();
 
             *pq |= 0x80;
@@ -270,13 +254,17 @@ zxerr_t crypto_init_primes() {
             view_message_show("Arweave", "Finding P");
             UX_WAIT_DISPLAYED();
             io_seproxyhal_io_heartbeat();
-            cx_math_next_prime(pq, RSA_PRIME_LEN);
+            if (cx_math_next_prime_no_throw(pq, RSA_PRIME_LEN) != CX_OK) {
+                THROW(APDU_CODE_EXECUTION_ERROR);
+            }
             io_seproxyhal_io_heartbeat();
 
             view_message_show("Arweave", "Finding Q");
             UX_WAIT_DISPLAYED();
             io_seproxyhal_io_heartbeat();
-            cx_math_next_prime(pq + RSA_PRIME_LEN, RSA_PRIME_LEN);
+            if (cx_math_next_prime_no_throw(pq + RSA_PRIME_LEN, RSA_PRIME_LEN) != CX_OK) {
+                THROW(APDU_CODE_EXECUTION_ERROR);
+            }
             io_seproxyhal_io_heartbeat();
             MEMCPY_NV((void *) &N_crypto_store[slot_in_use].pq, pq, RSA_PRIME_LEN * 2);
             err = zxerr_ok;
@@ -302,20 +290,24 @@ zxerr_t crypto_init_keys() {
 
     view_message_show("Arweave", "gen pair");
     UX_WAIT_DISPLAYED();
-    cx_rsa_generate_pair(RSA_MODULUS_LEN,
-                         (cx_rsa_public_key_t * ) & rsa_pub,
-                         (cx_rsa_private_key_t * ) & rsa_priv,
-                         exp_be_buf, 4,
-                         (const unsigned char *) &N_crypto_store[slot_in_use].pq);
+
+    zxerr_t error = zxerr_unknown;
+    CATCH_CXERROR(cx_rsa_generate_pair_no_throw(RSA_MODULUS_LEN,
+                                               (cx_rsa_public_key_t * ) & rsa_pub,
+                                               (cx_rsa_private_key_t * ) & rsa_priv,
+                                               exp_be_buf, 4,
+                                               (const unsigned char *) &N_crypto_store[slot_in_use].pq))
+    error = zxerr_ok;
 
     view_message_show("Arweave", "store keys");
     UX_WAIT_DISPLAYED();
     SET_NV((void *)&N_crypto_store[slot_in_use].initialized, uint8_t, true)
     MEMCPY_NV((void *)&N_crypto_store[slot_in_use].rsa_pub, &rsa_pub, sizeof(rsa_pub));
     MEMCPY_NV((void *)&N_crypto_store[slot_in_use].rsa_priv, &rsa_priv, sizeof(rsa_priv));
-    MEMZERO(&rsa_priv, sizeof(rsa_priv));
 
-    return zxerr_ok;
+catch_cx_error:
+    MEMZERO(&rsa_priv, sizeof(rsa_priv));
+    return error;
 }
 
 zxerr_t crypto_uninitialized_slot(uint8_t slot) {
@@ -381,12 +373,12 @@ bool crypto_store_init_test() {
     if (!crypto_store_slot_is_initialized(KEY_SLOT_1)) {
         return false;
     } else if(same_masterseed(KEY_SLOT_1)) {
-        slot_in_use=KEY_SLOT_1;
+        slot_in_use = KEY_SLOT_1;
         return true;
     } else if (!crypto_store_slot_is_initialized(KEY_SLOT_2)) {
          return false;
     } else if (same_masterseed(KEY_SLOT_2)) {
-        slot_in_use=KEY_SLOT_2;
+        slot_in_use = KEY_SLOT_2;
         return true;
     } else {
         return false;
