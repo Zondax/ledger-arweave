@@ -33,7 +33,7 @@ parser_error_t parser_parse(parser_context_t *ctx,
 //// verifies tx fields
 parser_error_t parser_validate(const parser_context_t *ctx);
 
-void hashBlob(uint8_t hashResult[48], const uint8_t *data, uint16_t dataLen);
+parser_error_t hashBlob(uint8_t hashResult[48], const uint8_t *data, uint16_t dataLen);
 
 //// returns the number of items in the current parsing context
 parser_error_t parser_getDigest(uint8_t *digest, uint16_t digestLen);
