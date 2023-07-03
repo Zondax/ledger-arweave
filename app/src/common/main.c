@@ -20,6 +20,8 @@
 
 #include <os_io_seproxyhal.h>
 
+extern bool device_initialized;
+
 __attribute__((section(".boot"))) int
 main(void) {
     // exit critical section
@@ -33,11 +35,12 @@ main(void) {
         TRY
         {
             app_init();
-            if (!crypto_store_init_test()) {
+            device_initialized = crypto_store_init_test();
+            if (!device_initialized) {
                 view_initialize_init(crypto_store_init);
                 view_initialize_show(0, NULL);
             } else {
-               view_idle_show(0,NULL);
+                view_idle_show(0,NULL);
             }
             app_main();
         }

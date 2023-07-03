@@ -27,6 +27,7 @@
 #define MASTERSEED_LEN 32
 
 static uint8_t slot_in_use = KEY_SLOT_1;
+bool device_initialized = false;
 
 typedef struct {
     uint8_t masterSeed[MASTERSEED_LEN];
@@ -96,6 +97,7 @@ zxerr_t crypto_pubkey_part(uint8_t *key, uint8_t index){
     if (index > 1) {
         return zxerr_out_of_bounds;
     }
+
     cx_rsa_4096_public_key_t *rsa_pubkey = crypto_store_get_pubkey();
     if (rsa_pubkey == NULL) {
         return zxerr_invalid_crypto_settings;
@@ -379,10 +381,12 @@ bool crypto_store_init_test() {
     if (!crypto_store_slot_is_initialized(KEY_SLOT_1)) {
         return false;
     } else if(same_masterseed(KEY_SLOT_1)) {
+        slot_in_use=KEY_SLOT_1;
         return true;
     } else if (!crypto_store_slot_is_initialized(KEY_SLOT_2)) {
          return false;
     } else if (same_masterseed(KEY_SLOT_2)) {
+        slot_in_use=KEY_SLOT_2;
         return true;
     } else {
         return false;
@@ -406,6 +410,7 @@ zxerr_t crypto_initialize_slot() {
     UX_WAIT_DISPLAYED();
     CHECK_ZXERR(crypto_init_keys())
 
+    device_initialized = true;
     return zxerr_ok;
 }
 
