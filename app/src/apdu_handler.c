@@ -34,6 +34,8 @@
 
 static bool tx_initialized = false;
 
+extern bool device_initialized;
+
 static bool process_chunk(volatile uint32_t *tx, uint32_t rx) {
     UNUSED(tx);
     const uint8_t payloadType = G_io_apdu_buffer[OFFSET_PAYLOAD_TYPE];
@@ -202,7 +204,12 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                 THROW(APDU_CODE_WRONG_LENGTH);
             }
 
-            switch (G_io_apdu_buffer[OFFSET_INS]) {
+            const uint8_t ins = G_io_apdu_buffer[OFFSET_INS];
+            if (!device_initialized && ins != INS_GET_VERSION) {
+                THROW(APDU_CODE_TX_NOT_INITIALIZED);
+            }
+
+            switch (ins) {
                 case INS_GET_VERSION: {
                     handle_getversion(flags, tx, rx);
                     break;

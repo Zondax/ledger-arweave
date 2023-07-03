@@ -21,12 +21,15 @@
 #endif
 
 #include "zxmacros.h"
+#include "zxerror.h"
 
-void crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *out, unsigned int outLen) {
+zxerr_t crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *out, unsigned int outLen) {
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
     cx_sha512_t ctx;
     cx_sha384_init(&ctx);
-    cx_hash(&ctx.header, CX_LAST, in, inLen, out, outLen);
+    if (cx_hash_no_throw(&ctx.header, CX_LAST, in, inLen, out, outLen) != CX_OK) {
+        return zxerr_unknown;
+    }
 #else
     uint8_t tmp[64] = {0};
     // This function requires a full 64 bytes context (sha512)
@@ -34,4 +37,5 @@ void crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *o
     // We can later trim and return only 48
     MEMCPY(out, tmp, 48);
 #endif
+    return zxerr_ok;
 }

@@ -24,6 +24,14 @@
 #include "b64url.h"
 #include "crypto_helper.h"
 
+#define CONVERT_ZXERROR(CALL)          \
+    do {                                \
+        if (CALL != zxerr_ok) {         \
+        return parser_unexpected_error; \
+        }                               \
+    } while (0);
+
+
 parser_error_t parser_parse(parser_context_t *ctx, const uint8_t *data, size_t dataLen) {
     if (dataLen < 1) {
         return parser_no_data;
@@ -65,61 +73,64 @@ typedef union {
     uint8_t pair[96];
 } deepHash_t;
 
-void hashTag(uint8_t hashResult[48], const char *tagName, uint16_t tagNumber) {
-    uint8_t tagBuffer[50];
-    MEMZERO(tagBuffer, sizeof(tagBuffer));
+static parser_error_t hashTag(uint8_t hashResult[48], const char *tagName, uint16_t tagNumber) {
+    uint8_t tagBuffer[50] = {0};
     snprintf((char *) tagBuffer, sizeof(tagBuffer), "%s%d", tagName, tagNumber);
-    crypto_sha384(tagBuffer, strlen((char *) tagBuffer), hashResult, 48);
+    CONVERT_ZXERROR(crypto_sha384(tagBuffer, strlen((char *) tagBuffer), hashResult, 48))
+    return parser_ok;
 }
 
-void hashBlob(uint8_t hashResult[48], const uint8_t *data, uint16_t dataLen) {
-    taggedHash_t ctx;
-    MEMZERO(&ctx, sizeof(taggedHash_t));
+parser_error_t hashBlob(uint8_t hashResult[static 48], const uint8_t *data, uint16_t dataLen) {
+    taggedHash_t ctx = {0};
 
-    hashTag(ctx.tagHash, "blob", dataLen);
-    crypto_sha384(data, dataLen, ctx.dataHash, 48);
-    crypto_sha384(ctx.blob, sizeof(taggedHash_t), hashResult, 48);
+    CHECK_PARSER_ERR(hashTag(ctx.tagHash, "blob", dataLen))
+    CONVERT_ZXERROR(crypto_sha384(data, dataLen, ctx.dataHash, 48))
+    CONVERT_ZXERROR(crypto_sha384(ctx.blob, sizeof(taggedHash_t), hashResult, 48))
+    return parser_ok;
 }
 
-void hashAccumulate(deepHash_t *dh) {
-    uint8_t temp[48];
-    crypto_sha384(dh->pair, 96, temp, 48);
+static parser_error_t hashAccumulate(deepHash_t *dh) {
+    uint8_t temp[48] = {0};
+    CONVERT_ZXERROR(crypto_sha384(dh->pair, 96, temp, 48))
     MEMCPY(dh->acc, temp, 48);
+    return parser_ok;
 }
 
-void hashChunkWithAccumulator(deepHash_t *dh, const uint8_t *data, uint16_t dataLen) {
-    hashBlob(dh->hash, data, dataLen);
-    hashAccumulate(dh);
+static parser_error_t hashChunkWithAccumulator(deepHash_t *dh, const uint8_t *data, uint16_t dataLen) {
+    CHECK_PARSER_ERR(hashBlob(dh->hash, data, dataLen))
+    CHECK_PARSER_ERR(hashAccumulate(dh))
+
+    return parser_ok;
 }
 
-parser_error_t parser_getTagDigest(uint8_t *digest, uint16_t digestLen, parser_tag_t *tagObject) {
+static parser_error_t parser_getTagDigest(uint8_t *digest, uint16_t digestLen, parser_tag_t *tagObject) {
     MEMZERO(digest, digestLen);
-    deepHash_t ctx;
-    MEMZERO(&ctx, sizeof(taggedHash_t));
+    deepHash_t ctx = {0};
+
     // Bootstrap
-    hashTag(ctx.acc, "list", 2);
-    hashChunkWithAccumulator(&ctx, tagObject->key.ptr, tagObject->key.len);
-    hashChunkWithAccumulator(&ctx, tagObject->value.ptr, tagObject->value.len);
+    CHECK_PARSER_ERR(hashTag(ctx.acc, "list", 2))
+    CHECK_PARSER_ERR(hashChunkWithAccumulator(&ctx, tagObject->key.ptr, tagObject->key.len))
+    CHECK_PARSER_ERR(hashChunkWithAccumulator(&ctx, tagObject->value.ptr, tagObject->value.len))
     MEMCPY(digest, ctx.acc, 48);
     return parser_ok;
 }
 
-void parser_applyDigestTags(deepHash_t *dh) {
-    deepHash_t ctx;
-    MEMZERO(&ctx, sizeof(taggedHash_t));
+static parser_error_t parser_applyDigestTags(deepHash_t *dh) {
+    deepHash_t ctx = {0};
 
     // Bootstrap
-    hashTag(ctx.acc, "list", parser_tx_obj.tags_count);
+    CHECK_PARSER_ERR(hashTag(ctx.acc, "list", parser_tx_obj.tags_count))
 
     // Accumulate tag digests
     for (int i = 0; i < parser_tx_obj.tags_count; i++) {
-        parser_getTagDigest(ctx.hash, 48, &parser_tx_obj.tags[i]);
-        hashAccumulate(&ctx);
+        CHECK_PARSER_ERR(parser_getTagDigest(ctx.hash, 48, &parser_tx_obj.tags[i]))
+        CHECK_PARSER_ERR(hashAccumulate(&ctx))
     }
 
     // Now combine and return
     MEMCPY(dh->hash, ctx.acc, 48);
-    hashAccumulate(dh);
+    CHECK_PARSER_ERR(hashAccumulate(dh))
+    return parser_ok;
 }
 
 parser_error_t parser_getDigest(uint8_t *digest, uint16_t digestLen) {
@@ -127,23 +138,22 @@ parser_error_t parser_getDigest(uint8_t *digest, uint16_t digestLen) {
         return parser_unexpected_buffer_end;
     }
     MEMZERO(digest, digestLen);
-    deepHash_t ctx;
-    MEMZERO(&ctx, sizeof(taggedHash_t));
+    deepHash_t ctx = {0};
 
     // Bootstrap
-    hashTag(ctx.acc, "list", 9);
-    hashChunkWithAccumulator(&ctx, parser_tx_obj.format.ptr, parser_tx_obj.format.len);
-    hashChunkWithAccumulator(&ctx, parser_tx_obj.owner.ptr, parser_tx_obj.owner.len);
-    hashChunkWithAccumulator(&ctx, parser_tx_obj.target.ptr, parser_tx_obj.target.len);
-    hashChunkWithAccumulator(&ctx, parser_tx_obj.quantity.ptr, parser_tx_obj.quantity.len);
-    hashChunkWithAccumulator(&ctx, parser_tx_obj.reward.ptr, parser_tx_obj.reward.len);
-    hashChunkWithAccumulator(&ctx, parser_tx_obj.last_tx.ptr, parser_tx_obj.last_tx.len);
+    CHECK_PARSER_ERR(hashTag(ctx.acc, "list", 9))
+    CHECK_PARSER_ERR(hashChunkWithAccumulator(&ctx, parser_tx_obj.format.ptr, parser_tx_obj.format.len))
+    CHECK_PARSER_ERR(hashChunkWithAccumulator(&ctx, parser_tx_obj.owner.ptr, parser_tx_obj.owner.len))
+    CHECK_PARSER_ERR(hashChunkWithAccumulator(&ctx, parser_tx_obj.target.ptr, parser_tx_obj.target.len))
+    CHECK_PARSER_ERR(hashChunkWithAccumulator(&ctx, parser_tx_obj.quantity.ptr, parser_tx_obj.quantity.len))
+    CHECK_PARSER_ERR(hashChunkWithAccumulator(&ctx, parser_tx_obj.reward.ptr, parser_tx_obj.reward.len))
+    CHECK_PARSER_ERR(hashChunkWithAccumulator(&ctx, parser_tx_obj.last_tx.ptr, parser_tx_obj.last_tx.len))
 
     // Add tags digest
-    parser_applyDigestTags(&ctx);
+    CHECK_PARSER_ERR(parser_applyDigestTags(&ctx))
 
-    hashChunkWithAccumulator(&ctx, parser_tx_obj.data_size.ptr, parser_tx_obj.data_size.len);
-    hashChunkWithAccumulator(&ctx, parser_tx_obj.data_root.ptr, parser_tx_obj.data_root.len);
+    CHECK_PARSER_ERR(hashChunkWithAccumulator(&ctx, parser_tx_obj.data_size.ptr, parser_tx_obj.data_size.len))
+    CHECK_PARSER_ERR(hashChunkWithAccumulator(&ctx, parser_tx_obj.data_root.ptr, parser_tx_obj.data_root.len))
 
     MEMCPY(digest, ctx.acc, SHA384_DIGEST_LEN);
     return parser_ok;
@@ -224,17 +234,7 @@ parser_error_t parser_printReward(const parser_element_t *v,
                                   char *outVal, uint16_t outValLen,
                                   uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
-
-    char uibuffer[200];
-    MEMZERO(uibuffer, sizeof(uibuffer));
-
-    if (v->len > sizeof(uibuffer) - 1) {
-        return parser_unexpected_buffer_end;
-    }
-
-    MEMCPY(uibuffer, v->ptr, v->len);
-    pageString(outVal, outValLen, uibuffer, pageIdx, pageCount);
-
+    pageStringExt(outVal, outValLen, (char*)v->ptr, v->len, pageIdx, pageCount);
     return parser_ok;
 }
 
@@ -242,9 +242,10 @@ parser_error_t parser_printLastTx(const parser_element_t *v,
                                   char *outVal, uint16_t outValLen,
                                   uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
-    char uibuffer[200];
-    b64url_encode(uibuffer, sizeof(uibuffer), v->ptr, v->len);
-
+    char uibuffer[200] = {0};
+    if (b64url_encode(uibuffer, sizeof(uibuffer), v->ptr, v->len) == 0) {
+        return parser_unexpected_buffer_end;
+    }
     pageString(outVal, outValLen, uibuffer, pageIdx, pageCount);
     return parser_ok;
 }
@@ -253,8 +254,10 @@ parser_error_t parser_printData(const parser_element_t *v,
                                 char *outVal, uint16_t outValLen,
                                 uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
-    char uibuffer[200];
-    b64url_encode(uibuffer, sizeof(uibuffer), v->ptr, v->len);
+    char uibuffer[200] = {0};
+    if (b64url_encode(uibuffer, sizeof(uibuffer), v->ptr, v->len) == 0) {
+        return parser_unexpected_buffer_end;
+    }
 
     pageString(outVal, outValLen, uibuffer, pageIdx, pageCount);
     return parser_ok;
@@ -267,17 +270,11 @@ parser_error_t parser_printTag(const parser_tag_t *v,
     MEMZERO(outKey, outKeyLen);
     MEMZERO(outVal, outValLen);
 
-    char uibuffer[200];
-    MEMZERO(uibuffer, sizeof(uibuffer));
-    MEMCPY(uibuffer, v->key.ptr, v->key.len);
-    snprintf(outKey, outKeyLen, "%s", uibuffer);
+    // Consider null terminator after v->key
+    const uint16_t maxKeyLen = (outKeyLen >= v->key.len + 1) ? (v->key.len + 1) : outKeyLen;
+    snprintf(outKey, maxKeyLen, "%s", (const char*)v->key.ptr);
 
-    MEMZERO(uibuffer, sizeof(uibuffer));
-    MEMCPY(uibuffer, v->value.ptr, v->value.len);
-    pageString(outVal, outValLen, uibuffer, pageIdx, pageCount);
-
-//    b64url_encode(uibuffer, sizeof(uibuffer), v->value.ptr, v->value.len);
-//    pageString(outVal, outValLen, uibuffer, pageIdx, pageCount);
+    pageStringExt(outVal, outValLen, (const char*)v->value.ptr, v->value.len, pageIdx, pageCount);
     return parser_ok;
 }
 
@@ -296,7 +293,7 @@ parser_error_t parser_getItem(const parser_context_t *ctx,
     CHECK_PARSER_ERR(parser_getNumItems(ctx, &numItems))
     CHECK_APP_CANARY()
 
-    if (displayIdx < 0 || displayIdx >= numItems) {
+    if (displayIdx >= numItems) {
         return parser_no_data;
     }
     *pageCount = 1;
