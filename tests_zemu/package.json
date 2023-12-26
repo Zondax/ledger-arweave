@@ -22,7 +22,7 @@
   "dependencies": {
     "@ledgerhq/hw-transport-node-hid": "^6.27.1",
     "@zondax/ledger-arweave": "link:../js",
-    "@zondax/zemu": "^0.44.2"
+    "@zondax/zemu": "^0.46.0"
   },
   "devDependencies": {
     "@types/jest": "^29.2.2",
@@ -30,7 +30,7 @@
     "@types/secp256k1": "^4.0.3",
     "@typescript-eslint/eslint-plugin": "^6.8.0",
     "@typescript-eslint/parser": "^6.8.0",
-    "crypto-js": "4.1.1",
+    "crypto-js": "4.2.0",
     "eslint": "^8.27.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-import": "^2.24.2",
