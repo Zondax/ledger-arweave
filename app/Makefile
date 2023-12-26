@@ -69,8 +69,6 @@ APP_SOURCE_FILES += $(BOLOS_SDK)/lib_cxng/src/cx_pkcs1.c
 APP_SOURCE_FILES += $(BOLOS_SDK)/lib_cxng/src/cx_utils.c
 APP_SOURCE_FILES += $(BOLOS_SDK)/lib_cxng/src/cx_ram.c
 
-NANOS_STACK_SIZE := 2850
-
 include $(CURDIR)/../deps/ledger-zxlib/makefiles/Makefile.devices
 
 ifeq ($(TARGET_NAME),TARGET_NANOS)
