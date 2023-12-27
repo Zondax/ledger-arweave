@@ -59,9 +59,6 @@ endif
 
 APP_LOAD_PARAMS = --curve ed25519 $(COMMON_LOAD_PARAMS) --path $(APPPATH)
 
-APP_LOAD_PARAMS += --tlvraw 9F:01
-DEFINES += HAVE_PENDING_REVIEW_SCREEN
-
 DEFINES += HAVE_RSA
 INCLUDES_PATH += $(BOLOS_SDK)/lib_cxng/src
 APP_SOURCE_FILES += $(BOLOS_SDK)/lib_cxng/src/cx_rsa.c
