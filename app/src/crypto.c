@@ -82,7 +82,7 @@ zxerr_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, uint16_t *sigSize
 
     zxerr_t error = zxerr_unknown;
 
-    CATCH_CXERROR(cx_rsa_sign_no_throw((const cx_rsa_private_key_t *)rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA256, digestsmall, CX_SHA256_SIZE, sig, RSA_MODULUS_LEN))
+    CATCH_CXERROR(cx_rsa_sign_no_throw((const cx_rsa_private_key_t *)rsa_privkey, CX_PAD_PKCS1_PSS, CX_SHA256, digestsmall, CX_SHA256_SIZE, sig, RSA_MODULUS_LEN));
     error = crypto_store_signature(sig);
 
 catch_cx_error:

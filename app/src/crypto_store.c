@@ -126,7 +126,7 @@ zxerr_t crypto_deriveMasterSeed() {
                                                      CX_CURVE_Ed25519,
                                                      master_path, HDPATH_LEN_DEFAULT,
                                                      masterSeed,
-                                                     NULL, NULL, 0))
+                                                     NULL, NULL, 0));
     MEMCPY_NV((void*) &N_crypto_store[slot_in_use].masterSeed, masterSeed, MASTERSEED_LEN);
     error = zxerr_ok;
 
@@ -156,7 +156,7 @@ bool same_masterseed(uint8_t slot) {
                                                      CX_CURVE_Ed25519,
                                                      master_path, HDPATH_LEN_DEFAULT,
                                                      masterSeed,
-                                                     NULL, NULL, 0))
+                                                     NULL, NULL, 0));
 
     same_seed = (MEMCMP((void*) &N_crypto_store[slot].masterSeed, masterSeed, MASTERSEED_LEN) == 0);
 
@@ -286,7 +286,7 @@ zxerr_t crypto_init_keys() {
 
     cx_rsa_4096_public_key_t rsa_pub;
     cx_rsa_4096_private_key_t rsa_priv;
-    const uint8_t exp_be_buf[] = {0x00, 0x01, 0x00, 0x01};    // default rsa value 65337
+    const uint8_t exp_be_buf[] = {0x00, 0x01, 0x00, 0x01};    // default rsa value 65537
 
     view_message_show("Arweave", "gen pair");
     UX_WAIT_DISPLAYED();
@@ -296,7 +296,7 @@ zxerr_t crypto_init_keys() {
                                                (cx_rsa_public_key_t * ) & rsa_pub,
                                                (cx_rsa_private_key_t * ) & rsa_priv,
                                                exp_be_buf, 4,
-                                               (const unsigned char *) &N_crypto_store[slot_in_use].pq))
+                                               (const unsigned char *) &N_crypto_store[slot_in_use].pq));
     error = zxerr_ok;
 
     view_message_show("Arweave", "store keys");

@@ -23,12 +23,9 @@ import { CreateTransactionInterface } from 'arweave/node/common'
 
 const defaultOptions = {
   ...DEFAULT_START_OPTIONS,
-  startDelay: 5000,
   logging: true,
   custom: `-s "${APP_SEED}"`,
-  X11: false,
   startTimeout: 10000,
-  startText: 'Ready',
 }
 
 const owner =
