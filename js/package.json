@@ -35,7 +35,7 @@
     "babel-jest": "^29.2.0",
     "bip32": "^4.0.0",
     "bip39": "^3.0.4",
-    "core-js": "^3.25.5",
+    "core-js": "^3.36.0",
     "crypto-js": "4.2.0",
     "eslint": "^8.31.0",
     "eslint-config-airbnb-base": "^15.0.0",
