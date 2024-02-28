@@ -178,7 +178,7 @@ parser_error_t parser_printTarget(const parser_element_t *v,
         return parser_unexpected_buffer_end;
     }
 
-    pageString(outVal, outValLen, uibuffer, pageIdx, pageCount);
+    pageStringExt(outVal, outValLen, uibuffer, strnlen(uibuffer, sizeof(uibuffer)), pageIdx, pageCount);
     return parser_ok;
 }
 
@@ -190,7 +190,7 @@ parser_error_t parser_printQuantity(const parser_element_t *c,
                                    char *outValue, uint16_t outValueLen,
                                    uint8_t pageIdx, uint8_t *pageCount) {
     char bufferUI[200] = {0};
-    if (c == NULL || c->len >= sizeof(bufferUI)) {
+    if (c == NULL || c->len > sizeof(bufferUI)) {
         return parser_unexpected_error;
     }
     MEMZERO(outValue, outValueLen);
@@ -211,7 +211,7 @@ parser_error_t parser_printQuantity(const parser_element_t *c,
         number_inplace_trimming(bufferUI, 1);
     }
 
-    pageString(outValue, outValueLen, bufferUI, pageIdx, pageCount);
+    pageStringExt(outValue, outValueLen, bufferUI, strnlen(bufferUI, sizeof(bufferUI)), pageIdx, pageCount);
 
     return parser_ok;
 }
@@ -221,12 +221,12 @@ parser_error_t parser_printSize(const parser_element_t *v,
                                     uint8_t pageIdx, uint8_t *pageCount) {
 
     char uibuffer[200] = {0};
-    if(v == NULL || outVal == NULL || v->len >= sizeof(uibuffer)) {
+    if(v == NULL || outVal == NULL || v->len > sizeof(uibuffer)) {
         return parser_unexpected_error;
     }
     MEMZERO(outVal, outValLen);
     MEMCPY(uibuffer, v->ptr, v->len);
-    pageString(outVal, outValLen, uibuffer, pageIdx, pageCount);
+    pageStringExt(outVal, outValLen, uibuffer, strnlen(uibuffer, sizeof(uibuffer)), pageIdx, pageCount);
     return parser_ok;
 }
 
@@ -246,7 +246,7 @@ parser_error_t parser_printLastTx(const parser_element_t *v,
     if (b64url_encode(uibuffer, sizeof(uibuffer), v->ptr, v->len) == 0) {
         return parser_unexpected_buffer_end;
     }
-    pageString(outVal, outValLen, uibuffer, pageIdx, pageCount);
+    pageStringExt(outVal, outValLen, uibuffer, strnlen(uibuffer, sizeof(uibuffer)), pageIdx, pageCount);
     return parser_ok;
 }
 
@@ -259,7 +259,7 @@ parser_error_t parser_printData(const parser_element_t *v,
         return parser_unexpected_buffer_end;
     }
 
-    pageString(outVal, outValLen, uibuffer, pageIdx, pageCount);
+    pageStringExt(outVal, outValLen, uibuffer, strnlen(uibuffer, sizeof(uibuffer)), pageIdx, pageCount);
     return parser_ok;
 }
 
