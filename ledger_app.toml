@@ -5,3 +5,4 @@ devices = ["nanos", "nanox", "nanos+"]
 
 [tests]
 unit_directory = "./tests/"
+
