@@ -150,7 +150,7 @@ parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
     return parser_ok;
 }
 
-#if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
+#if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2) || defined(TARGET_STAX)
 parser_error_t _validateTx(__Z_UNUSED const parser_context_t *c, const parser_tx_t *v) {
     zxerr_t zxerr;
     uint8_t rsakey[RSA_MODULUS_HALVE];

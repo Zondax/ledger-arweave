@@ -22,6 +22,10 @@
 #include "zxmacros_ledger.h"
 #include "os_io_seproxyhal.h"
 
+#ifdef TARGET_STAX
+#define UX_WAIT_DISPLAYED() {}
+#endif
+
 #define KEY_SLOT_1 0x00
 #define KEY_SLOT_2 0x01
 #define MASTERSEED_LEN 32

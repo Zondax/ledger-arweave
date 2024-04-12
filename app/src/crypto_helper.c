@@ -24,7 +24,7 @@
 #include "zxerror.h"
 
 zxerr_t crypto_sha384(const unsigned char *in, unsigned int inLen, unsigned char *out, unsigned int outLen) {
-#if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
+#if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2) || defined(TARGET_STAX)
     cx_sha512_t ctx;
     cx_sha384_init(&ctx);
     if (cx_hash_no_throw(&ctx.header, CX_LAST, in, inLen, out, outLen) != CX_OK) {
