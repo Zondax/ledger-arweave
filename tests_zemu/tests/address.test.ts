@@ -14,9 +14,10 @@
  *  limitations under the License.
  ******************************************************************************* */
 
-import Zemu, { DEFAULT_START_OPTIONS } from '@zondax/zemu'
+import Zemu, { ButtonKind, DEFAULT_START_OPTIONS } from '@zondax/zemu'
 import ArweaveApp from '@zondax/ledger-arweave'
 import { APP_SEED, models } from './common'
+import { DEFAULT_NANO_START_TEXT, DEFAULT_STAX_START_TEXT } from '@zondax/zemu/dist/constants'
 
 const defaultOptions = {
   ...DEFAULT_START_OPTIONS,
@@ -24,7 +25,6 @@ const defaultOptions = {
   logging: true,
   custom: `-s "${APP_SEED}"`,
   X11: false,
-  startText: 'Not Ready',
 }
 
 const expected_address_string = 'ruH8xdwP4Y0rK3YpQOSO8pfmtao9sGi4HriXrg-5ZLg'
@@ -36,19 +36,28 @@ describe('Address', function () {
     const sim = new Zemu(m.path)
 
     try {
-      await sim.start({ ...defaultOptions, model: m.name })
+      await sim.start({
+        ...defaultOptions,
+        model: m.name,
+        startText: m.name === 'stax' ? 'Finding P' : 'Not Ready', // stax starts the calculation right after starting
+        approveKeyword: m.name === 'stax' ? 'QR' : '',
+        approveAction: ButtonKind.ApproveTapButton,
+      })
 
       const app = new ArweaveApp(sim.getTransport())
 
-      // Run initialize
-      await sim.clickRight()
-      await sim.clickBoth('', false) // Here there's all the calculation, do not wait to finish
+      // stax starts the calculation right after starting, we don't need to click
+      if (m.name !== 'stax') {
+        // Run initialize
+        await sim.clickRight()
+        await sim.clickBoth('', false) // Here there's all the calculation, do not wait to finish
+      }
 
       await sim.deleteEvents() // remove events to avoid matching "Not Ready" with "Ready"
-      await sim.waitForText('Ready', 1800000) // 30min
+      await sim.waitForText(m.name === 'stax' ? DEFAULT_STAX_START_TEXT : DEFAULT_NANO_START_TEXT, 1800000) // 30min
 
-      // here we have the device initialized
-      const mainMenuSnapshot = await sim.snapshot()
+      // here we have the device initialized, let's set mainMenuSnapshot
+      sim.mainMenuSnapshot = await sim.snapshot()
 
       // getAddress
       const get_resp = await app.getAddress()
@@ -59,7 +68,7 @@ describe('Address', function () {
 
       // showAddress
       const showRequest = app.showAddress()
-      await sim.waitUntilScreenIsNot(mainMenuSnapshot)
+      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
       await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-show_address`)
 
       const show_resp = await showRequest
@@ -71,8 +80,8 @@ describe('Address', function () {
 
       // showAddress reject
       const showExpertRequest = app.showAddress()
-      await sim.waitUntilScreenIsNot(mainMenuSnapshot)
-      await sim.navigateAndCompareUntilText('.', `${m.prefix.toLowerCase()}-show_address_reject`, 'REJECT')
+      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+      await sim.compareSnapshotsAndReject('.', `${m.prefix.toLowerCase()}-show_address_reject`)
 
       const resp = await showExpertRequest
 

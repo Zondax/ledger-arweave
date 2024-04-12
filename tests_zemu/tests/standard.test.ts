@@ -14,7 +14,7 @@
  *  limitations under the License.
  ******************************************************************************* */
 
-import Zemu, { DEFAULT_START_OPTIONS } from '@zondax/zemu'
+import Zemu, { DEFAULT_START_OPTIONS, zondaxMainmenuNavigation } from '@zondax/zemu'
 import ArweaveApp from '@zondax/ledger-arweave'
 import { APP_SEED, models } from './common'
 
@@ -46,8 +46,9 @@ describe('Standard', function () {
   test.concurrent.each(models)('main menu', async function (m) {
     const sim = new Zemu(m.path)
     try {
+      const mainmenuNavigation = zondaxMainmenuNavigation(m.name)
       await sim.start({ ...defaultOptions, model: m.name })
-      await sim.navigateAndCompareSnapshots('.', `${m.prefix.toLowerCase()}-mainmenu`, [1, 0, 0, 4, -5])
+      await sim.navigateAndCompareSnapshots('.', `${m.prefix.toLowerCase()}-mainmenu`, mainmenuNavigation.schedule)
     } finally {
       await sim.close()
     }
